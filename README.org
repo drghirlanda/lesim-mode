@@ -1,0 +1,53 @@
+#+title: Lesim-Mode: Edit Learning Simulator Scripts in Emacs
+#+author: Stefano Ghirlanda
+#+email: drghirlanda@gmail.com
+#+options: toc:nil ':t
+
+* Introduction
+
+Lesim-Mode is an Emacs major mode to assist in writing Learning
+Simulator scripts. Current features are:
+- Syntax coloring.
+- Align parameter blocks at the ~=~ or ~:~ sign.
+- Align phase lines within a phase block at ~|~ signs.
+- Highlight of misspelled stimuli in phase blocks.
+- Highlight of misspelled line names in phase blocks.
+
+Lesim-Mode does not understand the full Learning Simulator
+syntax. That is a job for Superman, that is, Learning Simulator chief
+software architect [[https://github.com/markusrobertjonsson][Markus Jonsson]]. 
+
+* Learning Simulator
+
+You can learn about the Learning Simulator from these sources:
+- [[https://learningsimulator.org][The Learning Simulator Website]]
+- [[https://learningsimulator.readthedocs.io][Learning Simulator documentation on Read The Docs]]
+- [[https://joss.theoj.org/papers/10.21105/joss.02891][Short article in the Journal of Open Source Software]]  
+
+* Installation
+
+Install from here for now, hopefully from MELPA later.
+
+* Using Lesim-Mode
+
+- Syntax coloring is enabled automatically.
+- Press ~TAB~ anywhere in the buffer. This has different actions depending on context:
+  - In a parameter or phase block, it aligns the block.
+  - In a phase block, it also highlights misspelled stimulus elements and line names.
+  - Everywhere else, it has currently no effect.
+- Press ~C-c t~ to insert a template script.
+
+* Other packages
+
+- ~highlight-numbers~
+  
+* Planned features
+
+- Create template script to get started.
+- Run the Learning Simulator feeding it the current buffer.    
+
+Pleas submit feature suggestions as [[https://github.com/drghirlanda/lesim-mode/issues][issues on Github]].
+
+* Bugs
+
+Please submit bug reports as [[https://github.com/drghirlanda/lesim-mode/issues][issues on Github]].
