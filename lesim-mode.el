@@ -155,6 +155,7 @@ REGION must be a non-nil return value of
 	  (t
 	   (lesim--align-parameters)))))
 
+;;;###autoload
 (define-derived-mode lesim-mode prog-mode "Les"
   "Major mode for editing Learning Simulator scripts."
   :group 'lesim
