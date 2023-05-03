@@ -250,7 +250,10 @@ parameter block, align it at = signs."
 (defun lesim-run-script ()
   "Use Learning Simulator to run the script in the buffer."
   (interactive)
-  (compile (concat lesim-command " " (buffer-file-name))))
+  (let ((filename (buffer-file-name)))
+    (if filename
+	(compile (concat lesim-command " " (buffer-file-name)))
+      (user-error "Lesim buffer has no associated file"))))
 
 (defun lesim-debug (fmt &rest args)
   "Log message if `lesim-debug-flag' is not nil.
