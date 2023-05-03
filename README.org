@@ -24,6 +24,10 @@ software architect [[https://github.com/markusrobertjonsson][Markus Jonsson]].
 assignments is not supported by Lesim-Mode.
 
 
+#+attr_latex: :width .5\textwidth :center t
+#+caption: Sample screenshot
+[[file:./lesim-mode.png]]
+
 * Installation
 
 Install from here for now, hopefully from MELPA later.
