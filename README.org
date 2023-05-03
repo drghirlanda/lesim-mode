@@ -24,6 +24,7 @@ software architect [[https://github.com/markusrobertjonsson][Markus Jonsson]].
 assignments is not supported by Lesim-Mode.
 
 
+#+attr_org: :width 600
 #+attr_latex: :width .5\textwidth :center t
 #+caption: Sample screenshot
 [[file:./lesim-mode.png]]
