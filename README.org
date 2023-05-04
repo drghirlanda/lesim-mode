@@ -78,6 +78,7 @@ Please suggests features as [[https://github.com/drghirlanda/lesim-mode/issues][
 
 * Bugs
 
-- Error links in compilation mode point to the wrong file.
+- The content of multiline comment blocks is highlighted as regular
+  script text.
 
 Please report bugs as [[https://github.com/drghirlanda/lesim-mode/issues][issues on Github]].

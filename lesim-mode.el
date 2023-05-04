@@ -342,6 +342,7 @@ FMT and ARGS are treated like in `message'."
   ;; TAB magic:
   (setq-local indent-line-function #'lesim-validate)
   ;; search-based highlighting:
+  (setq-local font-lock-match-multiline t)
   (setq-local lesim--keywords
 	      `(
 		;; @ keywords:
