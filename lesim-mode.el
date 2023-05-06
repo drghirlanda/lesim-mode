@@ -247,13 +247,39 @@ parameter block, align it at = signs."
     (forward-line)
     (end-of-line)))
 
-(defun lesim-run-script ()
+(defun lesim-error (error-list)
+  ""
+  (remove-overlays (point-min) (point-max) 'id 'lesim--invalid)
+  (let* ((err-line (nth 0 error-list))
+	 (err-mess (nth 1 error-list))
+	 (err-beg (progn (goto-line err-line) (point))) ; moves point
+	 (err-end (save-excursion (end-of-line) (point)))
+	 (ov (make-overlay err-beg err-end)))
+    (overlay-put ov 'face lesim-invalid-face)
+    (overlay-put ov 'id 'lesim--invalid)
+    (overlay-put ov 'help-echo err-mess)
+    (beginning-of-line) ; moves point
+    (message err-mess)))
+  
+(defun lesim-run (&rest dont-save)
   "Use Learning Simulator to run the script in the buffer."
   (interactive)
-  (let ((filename (buffer-file-name)))
-    (if filename
-	(compile (concat lesim-command " " (buffer-file-name)))
-      (user-error "Lesim buffer has no associated file"))))
+  (unless dont-save
+    (save-some-buffers nil `(lambda () (eq (current-buffer)
+					   ,(current-buffer)))))
+  (let* ((script-file (buffer-file-name))
+	 (script-command (concat lesim-command " " script-file))
+	 (script-output (shell-command-to-string script-command)))
+    (when (string-match "Error on line \\([0-9]+\\): \\(.+\\)"
+			script-output)
+      (let ((line (string-to-number (match-string 1 script-output)))
+	    (mess (match-string 0 script-output)))
+	(list line mess)))))
+
+(defun lesim-run-and-error ()
+  ""
+  (interactive)
+  (lesim-error (lesim-run)))
 
 (defun lesim-debug (fmt &rest args)
   "Log message if `lesim-debug-flag' is not nil.
@@ -272,7 +298,7 @@ FMT and ARGS are treated like in `message'."
   :type 'string
   :group 'lesim)
 
-(defcustom lesim-run-script-key (kbd "C-c C-r")
+(defcustom lesim-run-key (kbd "C-c C-r")
   "Keybinding to run a script in the Learning Simulator."
   :type 'key-sequence
   :group 'lesim)
@@ -319,26 +345,12 @@ FMT and ARGS are treated like in `message'."
 \\{keymap}"
   :group 'lesim
   ;; keymap:
-  (define-key lesim-mode-map lesim-run-script-key #'lesim-run-script)
+  (define-key lesim-mode-map lesim-run-key #'lesim-run-and-error)
   (define-key lesim-mode-map lesim-template-key #'lesim-template)
   (lesim-debug "Keymap is %s" (current-local-map))
   ;; insert template if buffer is empty:
   (when (and lesim-template-auto (not (buffer-size)))
     (lesim-template))
-  ;; running scripts interactively:
-  (setq-local compile-command (format "%s %s"
-				      lesim-command
-				      buffer-file-name))
-  ;; parsing script errors:
-  (setq lesim--file (buffer-file-name)) ; can't be local :(
-  (setq compilation-scroll-output t)    ; can't be local :(
-  (add-to-list 'compilation-error-regexp-alist 'lesim)
-  (add-to-list 'compilation-error-regexp-alist-alist
-	       '(lesim
-		 "Error on line \\([0-9]+\\): "
-		 (lambda () lesim--file)
-;;		 (lambda () (lesim-file)) ; does not work ???
-		 1))
   ;; TAB magic:
   (setq-local indent-line-function #'lesim-validate)
   ;; search-based highlighting:
