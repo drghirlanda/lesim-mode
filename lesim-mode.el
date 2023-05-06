@@ -326,16 +326,6 @@ FMT and ARGS are treated like in `message'."
 (defvar lesim-debug-flag nil
   "Non-nil means send debug information to *Messages*.")
 
-;; this is currently not working :(
-;; (defun lesim--filename ()
-;;   "Return script file name (should run in compulation buffer)."
-;;   (save-excursion
-;;     (save-restriction
-;;       (widen)
-;;       (goto-char (point-min))
-;;       (when (re-search-forward (concat lesim-command " \\(.+\\)$"))
-;; 	(substring-no-properties (match-string 1))))))
-  
 ;;; Lesim-Mode definition
 
 ;;;###autoload
@@ -361,7 +351,7 @@ FMT and ARGS are treated like in `message'."
 		("\\(@[[:alpha:]_]+\\)\\>" . (1 font-lock-keyword-face))
 		;; functions:
 		("count\\(_line\\|_reset\\)?" . font-lock-function-name-face)
-		("choice\\|rand\\|and\\|or" . font-lock-function-name-face)
+		("choice\\|rand" . font-lock-function-name-face)
 		;; phase line names:
 		("^\\([[:alpha:]_][[:alnum:]_]+\\)\s+.*?|" . (1 font-lock-constant-face))
 		;; end-of-line comments:
