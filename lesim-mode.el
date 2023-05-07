@@ -248,28 +248,30 @@ parameter block, align it at = signs."
     (end-of-line)))
 
 (defun lesim-error (error-list)
-  ""
+  "Highlight lesim error in current buffer.
+The first element of ERROR-LIST is the line number, the second is
+the error message.  If ERROR-LIST is nil, remove error highlights."
   (remove-overlays (point-min) (point-max) 'id 'lesim--invalid)
-  (let* ((err-line (nth 0 error-list))
-	 (err-mess (nth 1 error-list))
-	 (err-beg (progn (goto-line err-line) (point))) ; moves point
-	 (err-end (save-excursion (end-of-line) (point)))
-	 (ov (make-overlay err-beg err-end)))
-    (overlay-put ov 'face lesim-invalid-face)
-    (overlay-put ov 'id 'lesim--invalid)
-    (overlay-put ov 'help-echo err-mess)
-    (beginning-of-line) ; moves point
-    (message err-mess)))
+  (when error-list
+    (let* ((err-line (nth 0 error-list))
+	   (err-mess (nth 1 error-list))
+	   (err-beg (progn (goto-char (point-min)) ; moves point!
+			   (forward-line (1- err-line))
+			   (point)))
+	   (err-end (save-excursion (end-of-line) (point)))
+	   (ov (make-overlay err-beg err-end)))
+      (overlay-put ov 'face lesim-invalid-face)
+      (overlay-put ov 'id 'lesim--invalid)
+      (overlay-put ov 'help-echo err-mess)
+      (beginning-of-line) ; moves point!
+      (message err-mess))))
   
-(defun lesim-run (&rest dont-save)
-  "Use Learning Simulator to run the script in the buffer."
+(defun lesim-run (script-file)
+  "Run Learning Simulator on file SCRIPT-FILE."
   (interactive)
-  (unless dont-save
-    (save-some-buffers nil `(lambda () (eq (current-buffer)
-					   ,(current-buffer)))))
-  (let* ((script-file (buffer-file-name))
-	 (script-command (concat lesim-command " " script-file))
+  (let* ((script-command (concat lesim-command " " script-file))
 	 (script-output (shell-command-to-string script-command)))
+    (message "Running lesim script %s" script-file)
     (when (string-match "Error on line \\([0-9]+\\): \\(.+\\)"
 			script-output)
       (let ((line (string-to-number (match-string 1 script-output)))
@@ -277,9 +279,12 @@ parameter block, align it at = signs."
 	(list line mess)))))
 
 (defun lesim-run-and-error ()
-  ""
+  "Run lesim on the current buffer's file.
+Prompt to save unsaved changes if any."
   (interactive)
-  (lesim-error (lesim-run)))
+  (save-some-buffers nil `(lambda () (eq (current-buffer)
+					 ,(current-buffer))))
+  (lesim-error (lesim-run (buffer-file-name))))
 
 (defun lesim-debug (fmt &rest args)
   "Log message if `lesim-debug-flag' is not nil.
