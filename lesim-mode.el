@@ -100,25 +100,25 @@ REGION must be a non-nil return value of
     (let ((reg-beg (nth 0 region))
           (reg-end (nth 1 region))
           (declared-stimuli (lesim--value-of "stimulus_elements"))
-          (stim-re (concat "^\s*" lesim--name "\s+\\([][[:alnum:],.]+\\)\s*|"))
+          (stim-re (concat "^\\s-*[^#]\\s-*" lesim--name "\\s-+\\([][[:alnum:],.]+\\)\\s-*|"))
           (elem-re (concat "\\(" lesim--name "\\)\\[?[0-9.]*\\]?,?")))
       (lesim-debug "Validating stimuli in %s-%s" reg-beg reg-end)
       (goto-char reg-beg)
       (while (re-search-forward stim-re reg-end t)
-        (let ((stim-beg (match-beginning 1))
-              (stim-end (match-end 1))
-              (stim (match-string 1)))
-          (lesim-debug "Found stimulus %s at %s" stim stim-beg)
-          (goto-char stim-beg)
-          (while (re-search-forward elem-re stim-end t)
-            (let ((elem (match-string 1))
-                  (elem-beg (match-beginning 1))
+          (let ((stim-beg (match-beginning 1))
+		(stim-end (match-end 1))
+		(stim (match-string 1)))
+            (lesim-debug "Found stimulus %s at %s" stim stim-beg)
+            (goto-char stim-beg)
+            (while (re-search-forward elem-re stim-end t)
+              (let ((elem (match-string 1))
+                    (elem-beg (match-beginning 1))
                   (elem-end (match-end 1)))
-              (lesim-debug "Found element %s at %s" elem elem-beg)
-              (unless (member elem declared-stimuli)
-                (let ((ov (make-overlay elem-beg elem-end)))
-                  (overlay-put ov 'face lesim-invalid-face)
-                  (overlay-put ov 'id 'lesim--invalid))))))))))
+		(lesim-debug "Found element %s at %s" elem elem-beg)
+		(unless (member elem declared-stimuli)
+                  (let ((ov (make-overlay elem-beg elem-end)))
+                    (overlay-put ov 'face lesim-invalid-face)
+                    (overlay-put ov 'id 'lesim--invalid))))))))))
 
 (defun lesim--validate-behaviors-and-lines (region)
   "Highlight undeclared behaviors and line names in REGION.
@@ -137,7 +137,8 @@ REGION must be a non-nil return value of
                (behaviors (lesim--value-of "behaviors"))
                (lines (lesim--phase-lines region)))
           (lesim-debug "Validating %s" word)
-          (unless (member word (append behaviors lines stimuli))
+	  (when (and (not (string-match "^\\s-*#" (thing-at-point 'line)))
+		     (not (member word (append behaviors lines stimuli))))
             (lesim-debug "%s is invalid" word)
             (let ((ov (make-overlay word-beg word-end)))
               (overlay-put ov 'face lesim-invalid-face)
@@ -161,7 +162,11 @@ REGION must be a non-nil return value of
       ;; align line id and stimulus:
       (align-regexp beg end "\\(\\s-*\\)\\s-" 1 1 nil)
       ;; align | clauses:
-      (align-regexp beg end "\\(\\s-*\\)|" 1 1 t))))
+      (align-regexp beg end "\\(\\s-*\\)|" 1 1 t)
+      ;; align comments
+      (goto-char (nth 0 region))
+      (while (re-search-forward "^\\s-*\\(#+\\s-*\\)" end t)
+	(replace-match "# ")))))
 
 (defun lesim--align-parameters ()
   "Align parameter block at point."
@@ -200,15 +205,15 @@ parameter block, align it at = signs."
              (lesim--validate-behaviors-and-lines region)
              (lesim--align-phase region)
              ;; movement:
-             (if (re-search-forward "[[:space:]|]+" reg-end t)
+             (if (re-search-forward "[[:space:]|#]+" (1- reg-end) t)
                  (goto-char (match-end 0))
                (goto-char reg-beg)
                (forward-line))))
           (t
            (lesim--align-parameters)))))
 
-;; This part defines next 3 functions list lesim keywords whose values are strings,
-;; numbers, or either. used for highlighting below:
+;; This part defines lesim keywords whose values are strings, numbers,
+;; or either. Used for highlighting and in lesim-template.
 
 (defvar lesim--strings
   '("mechanism" "behaviors" "stimulus_elements"
