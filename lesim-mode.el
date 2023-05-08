@@ -57,18 +57,17 @@ Return nil if point is not in a @phase block."
     (let ((search-beg (point))
           (case-fold-search t))
       ;; can we find @phase backwards?
-      (when (re-search-backward "^[[:space:]]*@phase" nil t)
+      (when (re-search-backward "^\\s-*@phase" nil t)
         (let ((phase-beg (match-beginning 0)))
           (lesim-debug "Found @phase beginning at %s" phase-beg)
           (forward-line)
-          ;; not in @phase if empty or @.+ line until search-beg:
-          (unless (re-search-forward "^\\([[:space:]]+\\|@.+\\)$" search-beg t)
-            ;; advance while there are phase lines:
-            (while (re-search-forward (concat "^\\s-*" lesim--name ".+|")
-                                      nil
-                                      t))
-            (goto-char (match-end 0))
-            (end-of-line)
+	  ;; move forward while we get phase lines:
+          (while (string-match "^\\(#\\|\\s-+\\|\\s-*[[:alpha:]_].+?|\\)"
+			       (thing-at-point 'line))
+	    (forward-line))
+	  (forward-line -1)
+	  (end-of-line)
+	  (when (> (point) search-beg)
             (lesim-debug "Found @phase end at %s" (point))
             (list phase-beg (point))))))))
 
@@ -361,7 +360,7 @@ FMT and ARGS are treated like in `message'."
                 ("count\\(_line\\|_reset\\)?" . font-lock-function-name-face)
                 ("choice\\|rand" . font-lock-function-name-face)
                 ;; phase line names:
-                ("^\\([[:alpha:]_][[:alnum:]_]+\\)\s+.*?|" . (1 font-lock-constant-face))
+                ("^\\s-*\\([[:alpha:]_][[:alnum:]_]+\\)\s+.*?|" . (1 font-lock-constant-face))
                 ;; end-of-line comments:
                 ("\\(#.*\\)$" . (1 font-lock-comment-face))
                 ;; warn about unassigned parameters:
