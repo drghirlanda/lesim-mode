@@ -195,22 +195,23 @@ REGION must be a non-nil return value of
 If point is in a phase block, align it at | signs and highlight
 undeclared stimuli, behaviors, and line names.  If point is in a
 parameter block, align it at = signs."
-  (let ((region (lesim--phase-region-at-point)))
+  (let* ((region (lesim--phase-region-at-point))
+	 (reg-beg (nth 0 region))
+         (reg-end (nth 1 region)))
     (cond (region
-           (let ((reg-beg (nth 0 region))
-                 (reg-end (nth 1 region)))
-             ;; validation:
-             (remove-overlays reg-beg reg-end 'id 'lesim--invalid)
-             (lesim--validate-stimuli region)
-             (lesim--validate-behaviors-and-lines region)
-             (lesim--align-phase region)
-             ;; movement:
-             (if (re-search-forward "[[:space:]|#]+" (1- reg-end) t)
-                 (goto-char (match-end 0))
-               (goto-char reg-beg)
-               (forward-line))))
-          (t
-           (lesim--align-parameters)))))
+	   ; validation:
+           (remove-overlays reg-beg reg-end 'id 'lesim--invalid)
+           (lesim--validate-stimuli region)
+           (lesim--validate-behaviors-and-lines region)
+           (lesim--align-phase region)
+	   ;; movement:
+	   (if (re-search-forward "[[:space:]|#]+" (1- reg-end) t)
+	       (goto-char (match-end 0))
+	     (goto-char reg-beg)
+	     (forward-line)))
+	  (t
+	   (lesim--align-parameters)))))
+
 
 ;; This part defines lesim keywords whose values are strings, numbers,
 ;; or either. Used for highlighting and in lesim-template.
