@@ -9,7 +9,7 @@ Lesim-Mode is an Emacs major mode to write and run Learning Simulator
 scripts. Its features are:
 - Syntax highlighting.
 - Align parameter blocks at the ~=~ sign.[fn:colon]
-- Align phase lines within a phase block at ~|~ signs.
+- Align phase lines at ~|~ signs.
 - Highlight misspelled stimuli, behaviors, and line names in phase
   blocks.
 - Handy movement by field in phase blocks.    
@@ -41,7 +41,8 @@ Install from here for now, hopefully from MELPA later.
   - In a parameter block, it aligns the block.
   - In a phase block, it aligns the block, highlights misspelled
     stimulus elements, behaviors, and phase line names, and moves to
-    the next field.
+    the next field. At the end of the phase block, it moves back the
+    beginning
   - Everywhere else, it has currently no effect.
 - Press ~C-c r~ to run the script in the Learning Simulator (see
   [[Configuration]]).
@@ -68,6 +69,7 @@ Using ~M-x customize-group lesim~ you can configure:
 
 * Planned features
 
+- Shift-TAB to move back by field in phase blocks.
 - Look up parameter definitions in the online docs.
 - Use online docs to set default parameter values.
 - Parse assignments to highlight syntax and content errors.

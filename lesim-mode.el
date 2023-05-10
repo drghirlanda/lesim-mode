@@ -204,7 +204,7 @@ parameter block, align it at = signs."
            (lesim--validate-stimuli region)
            (lesim--validate-behaviors-and-lines region)
            (lesim--align-phase region)
-	   ;; movement:
+	   ; movement:
 	   (if (re-search-forward "[[:space:]|#]+" (1- reg-end) t)
 	       (goto-char (match-end 0))
 	     (goto-char reg-beg)
@@ -255,24 +255,32 @@ parameter block, align it at = signs."
     (forward-line)
     (end-of-line)))
 
+(defun lesim-find-error (error-list)
+  ""
+  (save-excursion
+    (if (eq major-mode "org-mode")
+	(re-search-backward "#\\+begin_src\\s-+lesim")
+      (goto-char (point-min)))
+    (search-forward (nth 2 error-list))
+    (beginning-of-line)
+    (let ((beg (point)))
+      (end-of-line)
+      (list beg (point)))))
+    
 (defun lesim-error (error-list)
   "Highlight lesim error in current buffer.
-The first element of ERROR-LIST is the line number, the second is
-the error message.  If ERROR-LIST is nil, remove error highlights."
+ERROR-LIST is a list returned by `lesim-run'. When ERROR-LIST is
+nil (no error running the script), remove error highlights."
   (remove-overlays (point-min) (point-max) 'id 'lesim--invalid)
   (when error-list
-    (let* ((err-line (nth 0 error-list))
-           (err-mess (nth 1 error-list))
-           (err-beg (progn (goto-char (point-min)) ; moves point!
-                           (forward-line (1- err-line))
-                           (point)))
-           (err-end (save-excursion (end-of-line) (point)))
-           (ov (make-overlay err-beg err-end)))
-      (overlay-put ov 'face lesim-invalid-face)
-      (overlay-put ov 'id 'lesim--invalid)
-      (overlay-put ov 'help-echo err-mess)
-      (beginning-of-line) ; moves point!
-      (message err-mess))))
+    (let* ((regn (lesim-find-error error-list))
+           (mess (nth 1 error-list))
+           (ovrl (make-overlay (nth 0 regn) (nth 1 regn))))
+      (overlay-put ovrl 'face lesim-invalid-face)
+      (overlay-put ovrl 'id 'lesim--invalid)
+      (overlay-put ovrl 'help-echo mess)
+      (goto-char (nth 0 regn))
+      (message "lesim: %s" mess))))
   
 (defun lesim-run (script-file)
   "Run Learning Simulator on file SCRIPT-FILE."
@@ -284,7 +292,15 @@ the error message.  If ERROR-LIST is nil, remove error highlights."
                         script-output)
       (let ((line (string-to-number (match-string 1 script-output)))
             (mess (match-string 0 script-output)))
-        (list line mess)))))
+	(with-current-buffer (find-file script-file)
+	  (save-excursion
+	    (goto-char (point-min))
+	    (forward-line (1- line))
+	    (let ((beg (point)))
+	      (end-of-line)
+              (list line
+		    mess
+		    (buffer-substring beg (point))))))))))
 
 (defun lesim-run-and-error ()
   "Run lesim on the current buffer's file.
