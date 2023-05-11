@@ -280,27 +280,27 @@ nil (no error running the script), remove error highlights."
       (overlay-put ovrl 'id 'lesim--invalid)
       (overlay-put ovrl 'help-echo mess)
       (goto-char (nth 0 regn))
-      (message "lesim: %s" mess))))
+      (message "lesim: %s" mess)
+      mess)))
   
 (defun lesim-run (script-file)
   "Run Learning Simulator on file SCRIPT-FILE."
   (interactive)
   (let* ((script-command (concat lesim-command " " script-file))
          (script-output (shell-command-to-string script-command)))
-    (message "Running lesim script %s" script-file)
     (when (string-match "Error on line \\([0-9]+\\): \\(.+\\)"
                         script-output)
       (let ((line (string-to-number (match-string 1 script-output)))
             (mess (match-string 0 script-output)))
-	(with-current-buffer (find-file script-file)
-	  (save-excursion
-	    (goto-char (point-min))
-	    (forward-line (1- line))
-	    (let ((beg (point)))
-	      (end-of-line)
-              (list line
-		    mess
-		    (buffer-substring beg (point))))))))))
+	(with-temp-buffer
+	  (insert-file script-file)
+	  (goto-char (point-min))
+	  (forward-line (1- line))
+	  (let ((beg (point)))
+	    (end-of-line)
+            (list line
+		  mess
+		  (buffer-substring beg (point)))))))))
 
 (defun lesim-run-and-error ()
   "Run lesim on the current buffer's file.
