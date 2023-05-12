@@ -6,15 +6,15 @@
 * Introduction
 
 Lesim-Mode is an Emacs major mode to write and run Learning Simulator
-scripts. Its features are:
+scripts. It features:
 - Syntax highlighting.
 - Align parameter blocks at the ~=~ sign.[fn:colon]
 - Align phase lines at ~|~ signs.
 - Highlight misspelled stimuli, behaviors, and line names in phase
   blocks.
-- Handy movement by field in phase blocks.    
+- TAB moves by field in phase blocks.
 - Insert script template.
-- Run scripts through the Learning Simulator.  
+- Run scripts through the Learning Simulator and highlight errors.
   
 Lesim-Mode does not understand the full Learning Simulator
 syntax. That is a job for Superman, that is, Learning Simulator chief
@@ -37,16 +37,15 @@ Install from here for now, hopefully from MELPA later.
 
 - Syntax coloring is enabled automatically. It also highlights some
   errors, line unassigned parameters.
-- Press ~TAB~ anywhere in the buffer. This has different actions depending on context:
+- ~TAB~ behavior:
   - In a parameter block, it aligns the block.
   - In a phase block, it aligns the block, highlights misspelled
     stimulus elements, behaviors, and phase line names, and moves to
-    the next field. At the end of the phase block, it moves back the
-    beginning
-  - Everywhere else, it has currently no effect.
-- Press ~C-c r~ to run the script in the Learning Simulator (see
+    the next field. At the end of the phase block, it moves back to
+    the beginning
+- Press ~C-c C-r~ to run the script in the Learning Simulator (see
   [[Configuration]]).
-- Press ~C-c t~ to insert a template to get started on a script (see
+- Press ~C-c C-t~ to insert a template to get started on a script (see
   [[Configuration]]).
 
 * Learning Simulator
@@ -61,17 +60,17 @@ You can learn about the Learning Simulator from these sources:
 Using ~M-x customize-group lesim~ you can configure:
 - The command used to run the Learning Simulator (default:
   ~lesim.py~).
-- The key binding to run scripts (default: ~C-c r~).
-- The key binding to insert a template script (default: ~C-c p~).
+- The key binding to run scripts (default: ~C-c C-r~).
+- The key binding to insert a template script (default: ~C-c C-t~).
 - Whether to insert a template script automatically upon opening an
   empty ~.les~ file (default: ~nil~).
-- Other minor items explained in the customization buffer.    
+- Other minor items detailed in the customization buffer.    
 
 * Planned features
 
 - Shift-TAB to move back by field in phase blocks.
-- Look up parameter definitions in the online docs.
-- Use online docs to set default parameter values.
+- Look up parameter definitions and default values in lesim.py source
+  online.
 - Parse assignments to highlight syntax and content errors.
 - Highlight and validate plotting commands.  
 - Add Lesim menu.
