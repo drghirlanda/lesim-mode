@@ -35,7 +35,7 @@
 ;; elements like stimuli, behaviors, and phases.
 
 (defvar lesim--name
-  "[[:alpha:]_][[:alnum:]_]*"
+  "[a-zA-Z_][a-zA-Z0-9_]*"
   "Regexp to match Learning Simulator valid names.
 A valid name starts with a letter or underscore and continues
 with letters, digits, and underscores.")
@@ -171,47 +171,72 @@ REGION must be a non-nil return value of
 (defun lesim--align-parameters ()
   "Align parameter block at point."
   (save-excursion
-    (let ((assign-re  (concat "^" lesim--name "?\\s-*=.+?$")))
+    (let ((search-start (point))
+	  (assign-re  (concat "^\\s-*" lesim--name "?\\s-*=.+?$")))
       (while (re-search-backward assign-re (point-min) t))
       (let ((beg (match-beginning 0))
             (indent-tabs-mode nil))
         (while (re-search-forward assign-re (point-max) t))
         (let ((end (match-end 0)))
-          ;; standardize spaces after = and ,
-          (goto-char beg)
-          (while (re-search-forward "\\([=,]\\)[ \t]+" end t)
-            (replace-match "\\1 "))
-          ;; hide replace-regexp message:
-          (message "")
-          (align-regexp beg
-                        end
-                        "\\(\\s-*\\)="
-                        1
-                        1
-                        t))))))
+	  (when (and (<= search-start end) (>= search-start beg))
+            ;; standardize spaces after = and ,
+            (goto-char beg)
+            (while (re-search-forward "\\([=,]\\)[ \t]+" end t)
+              (replace-match "\\1 "))
+            ;; hide replace-regexp message:
+            (message "")
+            (align-regexp beg
+                          end
+                          "\\(\\s-*\\)="
+                          1
+                          1
+                          t)))))))
 
 (defun lesim-validate ()
   "Check phase and parameter blocks.
 If point is in a phase block, align it at | signs and highlight
 undeclared stimuli, behaviors, and line names.  If point is in a
 parameter block, align it at = signs."
+  (interactive)
   (let* ((region (lesim--phase-region-at-point))
 	 (reg-beg (nth 0 region))
          (reg-end (nth 1 region)))
     (cond (region
-	   ; validation:
+	   ;; validation:
            (remove-overlays reg-beg reg-end 'id 'lesim--invalid)
            (lesim--validate-stimuli region)
            (lesim--validate-behaviors-and-lines region)
-           (lesim--align-phase region)
-	   ; movement:
-	   (if (re-search-forward "[[:space:]|#]+" (1- reg-end) t)
-	       (goto-char (match-end 0))
-	     (goto-char reg-beg)
-	     (forward-line)))
+	   (lesim--align-phase region))
 	  (t
 	   (lesim--align-parameters)))))
 
+(defun lesim-forward-word ()
+  "Move forward by field or word.
+
+This function is bound to \\[lesim-forward-word]"
+  (interactive)
+  (let* ((region (lesim--phase-region-at-point))
+	 (reg-beg (nth 0 region))
+         (reg-end (nth 1 region)))
+    (re-search-forward lesim--name (point-max) t 2)
+    (goto-char (match-beginning 0))
+    (when (and region (> (point) reg-end))
+      (goto-char reg-beg)
+      (forward-line))))
+
+(defun lesim-backward-word ()
+  "Move backward by field or word.
+
+This function is bound to \\[lesim-backward-word]"
+  (interactive)
+  (let* ((region (lesim--phase-region-at-point))
+	 (reg-beg (nth 0 region))
+         (reg-end (nth 1 region)))
+    (re-search-backward (concat "\\b" lesim--name) (point-min) t 1)
+    (goto-char (match-beginning 0)))
+  (when (eq ?_ (char-before))
+    (backward-char)
+    (lesim-backward-word)))
 
 ;; This part defines lesim keywords whose values are strings, numbers,
 ;; or either. Used for highlighting and in lesim-template.
@@ -256,7 +281,8 @@ parameter block, align it at = signs."
     (end-of-line)))
 
 (defun lesim-find-error (error-list)
-  ""
+  "Locate the error string at the cdr of ERROR-LIST.
+Return a list with beginning and end points."
   (save-excursion
     (if (eq major-mode "org-mode")
 	(re-search-backward "#\\+begin_src\\s-+lesim")
@@ -269,7 +295,7 @@ parameter block, align it at = signs."
     
 (defun lesim-error (error-list)
   "Highlight lesim error in current buffer.
-ERROR-LIST is a list returned by `lesim-run'. When ERROR-LIST is
+ERROR-LIST is a list returned by `lesim-run'.  When ERROR-LIST is
 nil (no error running the script), remove error highlights."
   (remove-overlays (point-min) (point-max) 'id 'lesim--invalid)
   (when error-list
@@ -327,8 +353,13 @@ FMT and ARGS are treated like in `message'."
   :type 'string
   :group 'lesim)
 
-(defcustom lesim-run-key (kbd "C-c C-r")
+(defcustom lesim-run-key (kbd "C-c C-c")
   "Keybinding to run a script in the Learning Simulator."
+  :type 'key-sequence
+  :group 'lesim)
+
+(defcustom lesim-validate-key (kbd "C-c C-v")
+  "Keybinding to validate Learning Simulator code."
   :type 'key-sequence
   :group 'lesim)
 
@@ -366,16 +397,20 @@ FMT and ARGS are treated like in `message'."
   ;; keymap:
   (define-key lesim-mode-map lesim-run-key #'lesim-run-and-error)
   (define-key lesim-mode-map lesim-template-key #'lesim-template)
+  (define-key lesim-mode-map [backtab] #'lesim-backward-word)
+  (define-key lesim-mode-map lesim-validate-key #'lesim-validate)
   (lesim-debug "Keymap is %s" (current-local-map))
+  (setq-local indent-line-function #'lesim-forward-word)
   ;; insert template if buffer is empty:
   (when (and lesim-template-auto (not (buffer-size)))
     (lesim-template))
-  ;; TAB magic:
-  (setq-local indent-line-function #'lesim-validate)
+  (setq-local comment-start "#")
+  (setq-local comment-end "")
   ;; search-based highlighting:
-  (setq-local font-lock-match-multiline t)
   (setq-local lesim--keywords
               `(
+	        ;; end-of-line comments:
+                ("\\(#.*\\)$" . (1 font-lock-comment-face))
                 ;; @ keywords:
                 ("\\(@[[:alpha:]_]+\\)\\>" . (1 font-lock-keyword-face))
                 ;; functions:
@@ -383,8 +418,6 @@ FMT and ARGS are treated like in `message'."
                 ("choice\\|rand" . font-lock-function-name-face)
                 ;; phase line names:
                 ("^\\s-*\\([[:alpha:]_][[:alnum:]_]+\\)\s+.*?|" . (1 font-lock-constant-face))
-                ;; end-of-line comments:
-                ("\\(#.*\\)$" . (1 font-lock-comment-face))
                 ;; warn about unassigned parameters:
                 (,(regexp-opt (append lesim--strings lesim--numbers lesim--whatevs lesim--postprocessing) 'words) . (1 lesim-invalid-face t))
                 ;; assigned parameters are cool:

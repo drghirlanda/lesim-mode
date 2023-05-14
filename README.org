@@ -3,72 +3,49 @@
 #+email: drghirlanda@gmail.com
 #+options: toc:nil ':t
 
-* Introduction
+Lesim-Mode is an Emacs major mode to write and run [[https://learningsimulator.org][Learning Simulator]]
+scripts. To learn more about the Learning Simulator, see this [[https://joss.theoj.org/papers/10.21105/joss.02891][short
+article]] and the [[https://learningsimulator.readthedocs.io][online documentation]].
 
-Lesim-Mode is an Emacs major mode to write and run Learning Simulator
-scripts. It features:
-- Syntax highlighting.
-- Align parameter blocks at the ~=~ sign.[fn:colon]
-- Align phase lines at ~|~ signs.
-- Highlight misspelled stimuli, behaviors, and line names in phase
-  blocks.
-- TAB moves by field in phase blocks.
-- Insert script template.
-- Run scripts through the Learning Simulator and highlight errors.
-  
 Lesim-Mode does not understand the full Learning Simulator
 syntax. That is a job for Superman, that is, Learning Simulator chief
-software architect [[https://github.com/markusrobertjonsson][Markus Jonsson]]. 
-
-[fn:colon] The earlier Learning Simulator syntax using ~:~ for
-assignments is not supported by Lesim-Mode.
-
+software architect [[https://github.com/markusrobertjonsson][Markus Jonsson]].
 
 #+attr_org: :width 600
 #+attr_latex: :width .5\textwidth :center t
 #+caption: Sample screenshot
 [[file:./lesim-mode.png]]
 
-* Installation
+* Installing
 
 Install from here for now, hopefully from MELPA later.
 
-* Quick start
+* Using
 
 - Syntax coloring is enabled automatically. It also highlights some
   errors, line unassigned parameters.
-- ~TAB~ behavior:
-  - In a parameter block, it aligns the block.
-  - In a phase block, it aligns the block, highlights misspelled
-    stimulus elements, behaviors, and phase line names, and moves to
-    the next field. At the end of the phase block, it moves back to
-    the beginning
-- Press ~C-c C-r~ to run the script in the Learning Simulator (see
-  [[Configuration]]).
-- Press ~C-c C-t~ to insert a template to get started on a script (see
-  [[Configuration]]).
-
-* Learning Simulator
-
-You can learn about the Learning Simulator from these sources:
-- [[https://learningsimulator.org][The Learning Simulator Website]]
-- [[https://learningsimulator.readthedocs.io][Learning Simulator documentation on Read The Docs]]
-- [[https://joss.theoj.org/papers/10.21105/joss.02891][Short article in the Journal of Open Source Software]]  
+- ~C-c C-c~ runs the script in the Learning Simulator (see
+  [[Configuration]]), highlighting any errors.
+- ~C-c C-v~ in a phase block aligns the block and highlights
+  misspelled stimuli, behaviors, and phase line names.
+- ~C-c C-v~ in a parameter block aligns the block.  
+- ~TAB~ and ~Shift-TAB~ in a phase block move between
+  fields. Elsewhere, they move by word.
+- ~C-c C-t~ inserts a template script (see [[Configuration]]).
 
 * Configuration
 
 Using ~M-x customize-group lesim~ you can configure:
 - The command used to run the Learning Simulator (default:
   ~lesim.py~).
-- The key binding to run scripts (default: ~C-c C-r~).
-- The key binding to insert a template script (default: ~C-c C-t~).
+- The key binding to run scripts.
+- The key binding to align and validate code.
+- The key binding to insert a template script.
 - Whether to insert a template script automatically upon opening an
   empty ~.les~ file (default: ~nil~).
-- Other minor items detailed in the customization buffer.    
 
 * Planned features
 
-- Shift-TAB to move back by field in phase blocks.
 - Look up parameter definitions and default values in lesim.py source
   online.
 - Parse assignments to highlight syntax and content errors.
