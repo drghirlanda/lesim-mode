@@ -144,32 +144,34 @@ REGION must be a non-nil return value of
               (overlay-put ov 'face lesim-invalid-face)
               (overlay-put ov 'id 'lesim--invalid))))))))
 
-(defun lesim--align-phase (region)
-  "Align phase lines in REGION.
-REGION must be a non-nil return value of
-'lesim--phase-region-at-point'."
-  (save-excursion
-    (goto-char (nth 0 region))
-    (forward-line) ; skip @phase line
-    (let ((beg (point))
-          (end (nth 1 region))
-          (indent-tabs-mode nil))
-      (lesim-debug "Aligning phase lines at %s-%s" beg end)
-      ;; standardize spaces after | and hide resulting messages:
-      (while (re-search-forward "|\\s-*" end t)
-        (replace-match "| "))
-      (message "")
-      ;; align line id and stimulus:
-      (align-regexp beg end "\\(\\s-*\\)\\s-" 1 1 nil)
-      ;; align | clauses:
-      (align-regexp beg end "\\(\\s-*\\)|" 1 1 t)
-      ;; align comments
-      (goto-char (nth 0 region))
-      (while (re-search-forward "^\\s-*\\(#+\\s-*\\)" end t)
-	(replace-match "# ")))))
+(defun lesim--align-phase ()
+  "Align phase block at point.
+If point is not in a phase block, do nothing."
+  (let ((region (lesim--phase-region-at-point)))
+    (when region
+      (save-excursion
+	(goto-char (nth 0 region))
+	(forward-line) ; skip @phase line
+	(let ((beg (point))
+	      (end (nth 1 region))
+	      (indent-tabs-mode nil))
+	  (lesim-debug "Aligning phase lines at %s-%s" beg end)
+	  ;; standardize spaces after | and hide resulting messages:
+	  (while (re-search-forward "|\\s-*" end t)
+	    (replace-match "| "))
+	  (message "")
+	  ;; align line id and stimulus:
+	  (align-regexp beg end "\\(\\s-*\\)\\s-" 1 1 nil)
+	  ;; align | clauses:
+	  (align-regexp beg end "\\(\\s-*\\)|" 1 1 t)
+	  ;; align comments
+	  (goto-char (nth 0 region))
+	  (while (re-search-forward "^\\s-*\\(#+\\s-*\\)" end t)
+	    (replace-match "# ")))))))
 
 (defun lesim--align-parameters ()
-  "Align parameter block at point."
+  "Align parameter block at point.
+If point is not in a parameter block, do nothing."
   (save-excursion
     (let ((search-start (point))
 	  (assign-re  (concat "^\\s-*" lesim--name "?\\s-*=.+?$")))
@@ -192,23 +194,23 @@ REGION must be a non-nil return value of
                           1
                           t)))))))
 
-(defun lesim-validate ()
-  "Check phase and parameter blocks.
+(defun lesim-align ()
+  "Align phase and parameters blocks at point."
+  (interactive)
+  (or (lesim--align-phase)
+      (lesim--align-parameters)))
+
+(defun lesim-validate (region)
+  "Check phase blocks (non-nil REGION) or parameter blocks (nil).
 If point is in a phase block, align it at | signs and highlight
 undeclared stimuli, behaviors, and line names.  If point is in a
 parameter block, align it at = signs."
   (interactive)
-  (let* ((region (lesim--phase-region-at-point))
-	 (reg-beg (nth 0 region))
-         (reg-end (nth 1 region)))
-    (cond (region
-	   ;; validation:
-           (remove-overlays reg-beg reg-end 'id 'lesim--invalid)
-           (lesim--validate-stimuli region)
-           (lesim--validate-behaviors-and-lines region)
-	   (lesim--align-phase region))
-	  (t
-	   (lesim--align-parameters)))))
+  ;; this cond preparaes for future validation outside phase blocks
+  (cond (region
+         (remove-overlays (nth 0 region) (nth 1 region) 'id 'lesim--invalid)
+         (lesim--validate-stimuli region)
+         (lesim--validate-behaviors-and-lines region))))
 
 (defun lesim-forward-word ()
   "Move forward by field or word.
@@ -219,6 +221,7 @@ This function is bound to \\[lesim-forward-word]"
     (let* ((region (lesim--phase-region-at-point))
 	   (reg-beg (nth 0 region))
            (reg-end (nth 1 region)))
+      (lesim-validate region)
       (re-search-forward lesim--name (point-max) t 2)
       (goto-char (match-beginning 0))
       (when (and region (> (point) reg-end))
@@ -230,11 +233,9 @@ This function is bound to \\[lesim-forward-word]"
 
 This function is bound to \\[lesim-backward-word]"
   (interactive)
-  (let* ((region (lesim--phase-region-at-point))
-	 (reg-beg (nth 0 region))
-         (reg-end (nth 1 region)))
-    (re-search-backward (concat "\\b" lesim--name) (point-min) t 1)
-    (goto-char (match-beginning 0)))
+  (lesim-validate (lesim--phase-region-at-point))
+  (re-search-backward (concat "\\b" lesim--name) (point-min) t 1)
+  (goto-char (match-beginning 0))
   (when (eq ?_ (char-before))
     (backward-char)
     (lesim-backward-word)))
@@ -320,7 +321,7 @@ nil (no error running the script), remove error highlights."
       (let ((line (string-to-number (match-string 1 script-output)))
             (mess (match-string 0 script-output)))
 	(with-temp-buffer
-	  (insert-file script-file)
+	  (insert-file-contents script-file)
 	  (goto-char (point-min))
 	  (forward-line (1- line))
 	  (let ((beg (point)))
@@ -359,13 +360,13 @@ FMT and ARGS are treated like in `message'."
   :type 'key-sequence
   :group 'lesim)
 
-(defcustom lesim-validate-key (kbd "C-c C-v")
-  "Keybinding to validate Learning Simulator code."
+(defcustom lesim-template-key (kbd "C-c C-t")
+  "Keybinding to insert a Learning Simulator script template."
   :type 'key-sequence
   :group 'lesim)
 
-(defcustom lesim-template-key (kbd "C-c C-t")
-  "Keybinding to insert a Learning Simulator script template."
+(defcustom lesim-align-key (kbd "C-c C-a")
+  "Keybinding to align Learning Simulator code."
   :type 'key-sequence
   :group 'lesim)
 
@@ -398,8 +399,8 @@ FMT and ARGS are treated like in `message'."
   ;; keymap:
   (define-key lesim-mode-map lesim-run-key #'lesim-run-and-error)
   (define-key lesim-mode-map lesim-template-key #'lesim-template)
+  (define-key lesim-mode-map lesim-align-key #'lesim-align)
   (define-key lesim-mode-map [backtab] #'lesim-backward-word)
-  (define-key lesim-mode-map lesim-validate-key #'lesim-validate)
   (lesim-debug "Keymap is %s" (current-local-map))
   (setq-local indent-line-function #'lesim-forward-word)
   ;; insert template if buffer is empty:
