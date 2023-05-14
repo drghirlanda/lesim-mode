@@ -215,14 +215,15 @@ parameter block, align it at = signs."
 
 This function is bound to \\[lesim-forward-word]"
   (interactive)
-  (let* ((region (lesim--phase-region-at-point))
-	 (reg-beg (nth 0 region))
-         (reg-end (nth 1 region)))
-    (re-search-forward lesim--name (point-max) t 2)
-    (goto-char (match-beginning 0))
-    (when (and region (> (point) reg-end))
-      (goto-char reg-beg)
-      (forward-line))))
+  (unless (looking-at-p "^$")
+    (let* ((region (lesim--phase-region-at-point))
+	   (reg-beg (nth 0 region))
+           (reg-end (nth 1 region)))
+      (re-search-forward lesim--name (point-max) t 2)
+      (goto-char (match-beginning 0))
+      (when (and region (> (point) reg-end))
+	(goto-char reg-beg)
+	(forward-line)))))
 
 (defun lesim-backward-word ()
   "Move backward by field or word.
