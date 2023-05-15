@@ -44,19 +44,7 @@ Using ~M-x customize-group lesim~ you can configure:
 - Whether to insert a template script automatically upon opening an
   empty ~.les~ file (default: ~nil~).
 
-* Planned features
+* Bugs and planned features
 
-- Look up parameter definitions and default values in lesim.py source
-  online.
-- Parse assignments to highlight syntax and content errors.
-- Highlight and validate plotting commands.  
-- Add Lesim menu.
-  
-Please suggests features as [[https://github.com/drghirlanda/lesim-mode/issues][issues on Github]].
+Please use [[https://github.com/drghirlanda/lesim-mode/issues][issues on Github]] for bug reports and feature requests.
 
-* Bugs
-
-- The content of multiline comment blocks is highlighted as regular
-  script text.
-
-Please report bugs as [[https://github.com/drghirlanda/lesim-mode/issues][issues on Github]].
