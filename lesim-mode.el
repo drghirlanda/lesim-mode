@@ -308,7 +308,7 @@ nil (no error running the script), remove error highlights."
       (overlay-put ovrl 'id 'lesim--invalid)
       (overlay-put ovrl 'help-echo mess)
       (goto-char (nth 0 regn))
-      (message "lesim: %s" mess)
+      (message mess)
       mess)))
   
 (defun lesim-run (script-file)
@@ -388,6 +388,34 @@ FMT and ARGS are treated like in `message'."
 (defvar lesim-debug-flag nil
   "Non-nil means send debug information to *Messages*.")
 
+(defun lesim--extend-region ()
+  "Extend region to cover multiline comment delimiters."
+  (save-excursion
+    (goto-char font-lock-beg)
+    (let ((changed nil))
+      (when (search-backward "###" nil t)
+	(let ((beg (match-beginning 0)))
+	  (when (< beg font-lock-beg)
+	    (setq changed t font-lock-beg beg))))
+      (goto-char font-lock-end)
+      (when (search-forward "###" nil t)
+	(let ((end (match-end 0)))
+	  (when (> end font-lock-end)
+	    (setq changed t font-lock-end end))))
+      changed)))
+
+(defun lesim--match-multiline-comment (limit)
+  "Look for multiline comment between point and LIMIT."
+  (forward-char 3)
+  (when (search-backward "###" nil t)
+    (let ((beg (match-beginning 0)))
+      (goto-char (match-end 0))
+      (when (search-forward "###" limit t)
+	(let ((end (match-end 0)))
+	  (goto-char end)
+	  (store-match-data (list beg end))
+	  t)))))
+
 ;;; Lesim-Mode definition
 
 ;;;###autoload
@@ -396,6 +424,9 @@ FMT and ARGS are treated like in `message'."
 
 \\{keymap}"
   :group 'lesim
+  ;; insert template if configured and buffer is empty:
+  (when (and lesim-template-auto (not (buffer-size)))
+    (lesim-template))
   ;; keymap:
   (define-key lesim-mode-map lesim-run-key #'lesim-run-and-error)
   (define-key lesim-mode-map lesim-template-key #'lesim-template)
@@ -403,14 +434,14 @@ FMT and ARGS are treated like in `message'."
   (define-key lesim-mode-map [backtab] #'lesim-backward-word)
   (lesim-debug "Keymap is %s" (current-local-map))
   (setq-local indent-line-function #'lesim-forward-word)
-  ;; insert template if buffer is empty:
-  (when (and lesim-template-auto (not (buffer-size)))
-    (lesim-template))
   (setq-local comment-start "#")
   (setq-local comment-end "")
   ;; search-based highlighting:
+  (add-to-list 'font-lock-extend-region-functions #'lesim--extend-region)
   (setq-local lesim--keywords
               `(
+		;; multiline comments (must come before end-of-line comments):
+		(lesim--match-multiline-comment . (0 font-lock-comment-face))
 	        ;; end-of-line comments:
                 ("\\(#.*\\)$" . (1 font-lock-comment-face))
                 ;; @ keywords:
