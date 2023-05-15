@@ -389,15 +389,30 @@ FMT and ARGS are treated like in `message'."
   "Non-nil means send debug information to *Messages*.")
 
 (defun lesim--extend-region ()
-  "Extend region to cover multiline comment delimiters."
+  "Extend region to cover multiline comment delimiters.
+See `font-lock-extend-region-functions' for details, and comments
+in the code."
+  ;; Preamble: At any time, font-lock examines a region between
+  ;; font-lock-beg and font-lock-end. Constructs to be fontified
+  ;; should not straddle this region. Because font-lock cannot know
+  ;; about every fontification context, it lets users provide
+  ;; functions that may extend the font-lock region. The values of
+  ;; font-lock-beg and font-lock-end are available within these
+  ;; functions, and can be set to new values as needed. If a change is
+  ;; made, the function should return non-nil.
   (save-excursion
+    ;; Go to the beginning of the font-lock-region:
     (goto-char font-lock-beg)
     (let ((changed nil))
+      ;; Extend the region backward if we find ### before
+      ;; font-lock-beg:
       (when (search-backward "###" nil t)
 	(let ((beg (match-beginning 0)))
 	  (when (< beg font-lock-beg)
 	    (setq changed t font-lock-beg beg))))
+      ;; Got to the end of the region:
       (goto-char font-lock-end)
+      ;; Extend it forward if we find ### after font-lock-end:
       (when (search-forward "###" nil t)
 	(let ((end (match-end 0)))
 	  (when (> end font-lock-end)
@@ -405,15 +420,26 @@ FMT and ARGS are treated like in `message'."
       changed)))
 
 (defun lesim--match-multiline-comment (limit)
-  "Look for multiline comment between point and LIMIT."
+  "Look for multiline comment between point and LIMIT.
+See `font-lock-keywords' for details, and comments in the
+code."
+  ;; After extending the region (see comments to previous function,
+  ;; font-lock uses various mechanisms to highlight code. To highlight
+  ;; our ### ... ### multiline comments, we use the (MATCHER
+  ;; . FACENAME) construct. The MATCHER function works like
+  ;; search-forward, setting match data to the beginning and end of
+  ;; the comment, and advancing point to the end. It must return
+  ;; non-nil if a match is found. See the lesim-mode definition below
+  ;; for how this function and the previous one are provided to
+  ;; font-lock.
   (forward-char 3)
   (when (search-backward "###" nil t)
     (let ((beg (match-beginning 0)))
       (goto-char (match-end 0))
       (when (search-forward "###" limit t)
 	(let ((end (match-end 0)))
-	  (goto-char end)
-	  (store-match-data (list beg end))
+	  (goto-char end)                   ; move point
+	  (store-match-data (list beg end)) ; store match
 	  t)))))
 
 ;;; Lesim-Mode definition
