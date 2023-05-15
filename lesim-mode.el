@@ -483,7 +483,6 @@ code."
 
 \\{lesim-mode-map}"
   :group 'lesim
-  :abbrev-table lesim-mode-abbrev-table
   ;; insert template if configured and buffer is empty:
   (when (and lesim-template-auto (not (buffer-size)))
     (lesim-template))
