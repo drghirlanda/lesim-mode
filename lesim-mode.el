@@ -448,28 +448,29 @@ code."
           (store-match-data (list beg end)) ; store match
           t)))))
 
-
 ;;; Abbreviations
 
 (define-abbrev-table 'lesim-mode-abbrev-table
   '(("@p" "@phase stop:" (lambda () (forward-char -6)))
     ("@r" "@run")
-    ("@f" "@figure")
     ("@v" "@variables")
+    ("@f" "@figure")
+    ("@pa" "@panel")
     ("@s" "@subplot")
+    ("@l" "@legend")
     ("@o" "@omit_learn")
     ("@pp" "@pplot->" (lambda () (forward-char -2)))
     ("@vp" "@vplot->" (lambda () (forward-char -2)))
     ("@vssp" "@vssplot->" (lambda () (forward-char -2)))
     ("@wp" "@wplot")
     ("@np" "@nplot")
-    ("@l" "@legend")
     ("@pe" "@pexport")
     ("@ve" "@vexport")
     ("@vsse" "@vssexport")
     ("@we" "@wexport")
     ("@ne" "@nexport")
-    ("@he" "@hexport"))
+    ("@he" "@hexport")
+    ("@e" "@export")
   "Abbrev table for lesim-mode."
   :regexp "\\(@[[:alpha:]]+\\)"
   :case-fixed nil
