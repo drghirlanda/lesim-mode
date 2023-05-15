@@ -61,13 +61,13 @@ Return nil if point is not in a @phase block."
         (let ((phase-beg (match-beginning 0)))
           (lesim-debug "Found @phase beginning at %s" phase-beg)
           (forward-line)
-	  ;; move forward while we get phase lines:
+          ;; move forward while we get phase lines:
           (while (string-match "^\\(#\\|\\s-+\\|\\s-*[[:alpha:]_].+?|\\)"
-			       (thing-at-point 'line))
-	    (forward-line))
-	  (forward-line -1)
-	  (end-of-line)
-	  (when (> (point) search-beg)
+                               (thing-at-point 'line))
+            (forward-line))
+          (forward-line -1)
+          (end-of-line)
+          (when (> (point) search-beg)
             (lesim-debug "Found @phase end at %s" (point))
             (list phase-beg (point))))))))
 
@@ -106,16 +106,16 @@ REGION must be a non-nil return value of
       (goto-char reg-beg)
       (while (re-search-forward stim-re reg-end t)
           (let ((stim-beg (match-beginning 1))
-		(stim-end (match-end 1))
-		(stim (match-string 1)))
+                (stim-end (match-end 1))
+                (stim (match-string 1)))
             (lesim-debug "Found stimulus %s at %s" stim stim-beg)
             (goto-char stim-beg)
             (while (re-search-forward elem-re stim-end t)
               (let ((elem (match-string 1))
                     (elem-beg (match-beginning 1))
                   (elem-end (match-end 1)))
-		(lesim-debug "Found element %s at %s" elem elem-beg)
-		(unless (member elem declared-stimuli)
+                (lesim-debug "Found element %s at %s" elem elem-beg)
+                (unless (member elem declared-stimuli)
                   (let ((ov (make-overlay elem-beg elem-end)))
                     (overlay-put ov 'face lesim-invalid-face)
                     (overlay-put ov 'id 'lesim--invalid))))))))))
@@ -137,8 +137,8 @@ REGION must be a non-nil return value of
                (behaviors (lesim--value-of "behaviors"))
                (lines (lesim--phase-lines region)))
           (lesim-debug "Validating %s" word)
-	  (when (and (not (string-match "^\\s-*#" (thing-at-point 'line)))
-		     (not (member word (append behaviors lines stimuli))))
+          (when (and (not (string-match "^\\s-*#" (thing-at-point 'line)))
+                     (not (member word (append behaviors lines stimuli))))
             (lesim-debug "%s is invalid" word)
             (let ((ov (make-overlay word-beg word-end)))
               (overlay-put ov 'face lesim-invalid-face)
@@ -150,37 +150,37 @@ If point is not in a phase block, do nothing."
   (let ((region (lesim--phase-region-at-point)))
     (when region
       (save-excursion
-	(goto-char (nth 0 region))
-	(forward-line) ; skip @phase line
-	(let ((beg (point))
-	      (end (nth 1 region))
-	      (indent-tabs-mode nil))
-	  (lesim-debug "Aligning phase lines at %s-%s" beg end)
-	  ;; standardize spaces after | and hide resulting messages:
-	  (while (re-search-forward "|\\s-*" end t)
-	    (replace-match "| "))
-	  (message "")
-	  ;; align line id and stimulus:
-	  (align-regexp beg end "\\(\\s-*\\)\\s-" 1 1 nil)
-	  ;; align | clauses:
-	  (align-regexp beg end "\\(\\s-*\\)|" 1 1 t)
-	  ;; align comments
-	  (goto-char (nth 0 region))
-	  (while (re-search-forward "^\\s-*\\(#+\\s-*\\)" end t)
-	    (replace-match "# ")))))))
+        (goto-char (nth 0 region))
+        (forward-line) ; skip @phase line
+        (let ((beg (point))
+              (end (nth 1 region))
+              (indent-tabs-mode nil))
+          (lesim-debug "Aligning phase lines at %s-%s" beg end)
+          ;; standardize spaces after | and hide resulting messages:
+          (while (re-search-forward "|\\s-*" end t)
+            (replace-match "| "))
+          (message "")
+          ;; align line id and stimulus:
+          (align-regexp beg end "\\(\\s-*\\)\\s-" 1 1 nil)
+          ;; align | clauses:
+          (align-regexp beg end "\\(\\s-*\\)|" 1 1 t)
+          ;; align comments
+          (goto-char (nth 0 region))
+          (while (re-search-forward "^\\s-*\\(#+\\s-*\\)" end t)
+            (replace-match "# ")))))))
 
 (defun lesim--align-parameters ()
   "Align parameter block at point.
 If point is not in a parameter block, do nothing."
   (save-excursion
     (let ((search-start (point))
-	  (assign-re  (concat "^\\s-*" lesim--name "?\\s-*=.+?$")))
+          (assign-re  (concat "^\\s-*" lesim--name "?\\s-*=.+?$")))
       (while (re-search-backward assign-re (point-min) t))
       (let ((beg (match-beginning 0))
             (indent-tabs-mode nil))
         (while (re-search-forward assign-re (point-max) t))
         (let ((end (match-end 0)))
-	  (when (and (<= search-start end) (>= search-start beg))
+          (when (and (<= search-start end) (>= search-start beg))
             ;; standardize spaces after = and ,
             (goto-char beg)
             (while (re-search-forward "\\([=,]\\)[ \t]+" end t)
@@ -219,14 +219,14 @@ This function is bound to \\[lesim-forward-word]"
   (interactive)
   (unless (looking-at-p "^$")
     (let* ((region (lesim--phase-region-at-point))
-	   (reg-beg (nth 0 region))
+           (reg-beg (nth 0 region))
            (reg-end (nth 1 region)))
       (lesim-validate region)
       (re-search-forward lesim--name (point-max) t 2)
       (goto-char (match-beginning 0))
       (when (and region (> (point) reg-end))
-	(goto-char reg-beg)
-	(forward-line)))))
+        (goto-char reg-beg)
+        (forward-line)))))
 
 (defun lesim-backward-word ()
   "Move backward by field or word.
@@ -287,7 +287,7 @@ This function is bound to \\[lesim-backward-word]"
 Return a list with beginning and end points."
   (save-excursion
     (if (eq major-mode "org-mode")
-	(re-search-backward "#\\+begin_src\\s-+lesim")
+        (re-search-backward "#\\+begin_src\\s-+lesim")
       (goto-char (point-min)))
     (search-forward (nth 2 error-list))
     (beginning-of-line)
@@ -320,15 +320,15 @@ nil (no error running the script), remove error highlights."
                         script-output)
       (let ((line (string-to-number (match-string 1 script-output)))
             (mess (match-string 0 script-output)))
-	(with-temp-buffer
-	  (insert-file-contents script-file)
-	  (goto-char (point-min))
-	  (forward-line (1- line))
-	  (let ((beg (point)))
-	    (end-of-line)
+        (with-temp-buffer
+          (insert-file-contents script-file)
+          (goto-char (point-min))
+          (forward-line (1- line))
+          (let ((beg (point)))
+            (end-of-line)
             (list line
-		  mess
-		  (buffer-substring beg (point)))))))))
+                  mess
+                  (buffer-substring beg (point)))))))))
 
 (defun lesim-run-and-error ()
   "Run lesim on the current buffer's file.
@@ -388,6 +388,12 @@ FMT and ARGS are treated like in `message'."
 (defvar lesim-debug-flag nil
   "Non-nil means send debug information to *Messages*.")
 
+;; Helper functions for syntax highlighting
+
+(defvar font-lock-beg)
+
+(defvar font-lock-end)
+
 (defun lesim--extend-region ()
   "Extend region to cover multiline comment delimiters.
 See `font-lock-extend-region-functions' for details, and comments
@@ -407,16 +413,16 @@ in the code."
       ;; Extend the region backward if we find ### before
       ;; font-lock-beg:
       (when (search-backward "###" nil t)
-	(let ((beg (match-beginning 0)))
-	  (when (< beg font-lock-beg)
-	    (setq changed t font-lock-beg beg))))
+        (let ((beg (match-beginning 0)))
+          (when (< beg font-lock-beg)
+            (setq changed t font-lock-beg beg))))
       ;; Got to the end of the region:
       (goto-char font-lock-end)
       ;; Extend it forward if we find ### after font-lock-end:
       (when (search-forward "###" nil t)
-	(let ((end (match-end 0)))
-	  (when (> end font-lock-end)
-	    (setq changed t font-lock-end end))))
+        (let ((end (match-end 0)))
+          (when (> end font-lock-end)
+            (setq changed t font-lock-end end))))
       changed)))
 
 (defun lesim--match-multiline-comment (limit)
@@ -437,10 +443,37 @@ code."
     (let ((beg (match-beginning 0)))
       (goto-char (match-end 0))
       (when (search-forward "###" limit t)
-	(let ((end (match-end 0)))
-	  (goto-char end)                   ; move point
-	  (store-match-data (list beg end)) ; store match
-	  t)))))
+        (let ((end (match-end 0)))
+          (goto-char end)                   ; move point
+          (store-match-data (list beg end)) ; store match
+          t)))))
+
+
+;;; Abbreviations
+
+(define-abbrev-table 'lesim-mode-abbrev-table
+  '(("@p" "@phase stop:" (lambda () (forward-char -6)))
+    ("@r" "@run")
+    ("@f" "@figure")
+    ("@v" "@variables")
+    ("@s" "@subplot")
+    ("@o" "@omit_learn")
+    ("@pp" "@pplot->" (lambda () (forward-char -2)))
+    ("@vp" "@vplot->" (lambda () (forward-char -2)))
+    ("@vssp" "@vssplot->" (lambda () (forward-char -2)))
+    ("@wp" "@wplot")
+    ("@np" "@nplot")
+    ("@l" "@legend")
+    ("@pe" "@pexport")
+    ("@ve" "@vexport")
+    ("@vsse" "@vssexport")
+    ("@we" "@wexport")
+    ("@ne" "@nexport")
+    ("@he" "@hexport"))
+  "Abbrev table for lesim-mode."
+  :regexp "\\(@[[:alpha:]]+\\)"
+  :case-fixed nil
+  :system t)
 
 ;;; Lesim-Mode definition
 
@@ -448,8 +481,9 @@ code."
 (define-derived-mode lesim-mode prog-mode "Les"
   "Major mode to edit Learning Simulator scripts.
 
-\\{keymap}"
+\\{lesim-mode-map}"
   :group 'lesim
+  :abbrev-table lesim-mode-abbrev-table
   ;; insert template if configured and buffer is empty:
   (when (and lesim-template-auto (not (buffer-size)))
     (lesim-template))
@@ -466,9 +500,9 @@ code."
   (add-to-list 'font-lock-extend-region-functions #'lesim--extend-region)
   (setq-local lesim--keywords
               `(
-		;; multiline comments (must come before end-of-line comments):
-		(lesim--match-multiline-comment . (0 font-lock-comment-face))
-	        ;; end-of-line comments:
+                ;; multiline comments (must come before end-of-line comments):
+                (lesim--match-multiline-comment . (0 font-lock-comment-face))
+                ;; end-of-line comments:
                 ("\\(#.*\\)$" . (1 font-lock-comment-face))
                 ;; @ keywords:
                 ("\\(@[[:alpha:]_]+\\)\\>" . (1 font-lock-keyword-face))
@@ -484,7 +518,10 @@ code."
                 (,(concat (regexp-opt lesim--strings 'words) "\s*[:=]\s*[[:alnum:]_]") . (1 lesim-parameter-face t))
                 (,(concat (regexp-opt lesim--whatevs 'words) "\s*[:=]\s*[[:alnum:]_]") . (1 lesim-parameter-face t))
                 (,(concat (regexp-opt lesim--postprocessing 'words) "\s*[:=]\s*[[:alpha:]_]") . (1 lesim-parameter-face t))))
-  (setq-local font-lock-defaults '(lesim--keywords nil t)))
+  (setq-local font-lock-defaults '(lesim--keywords nil t))
+  ;; abbrevs:
+  (abbrev-mode)
+  )
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.les\\'" . lesim-mode))

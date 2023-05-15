@@ -24,3 +24,4 @@ NO_REWARD    background | START_TRIAL
 @figure v(stimulus->response)
 @subplot 111 {'xlabel':'exposures to stimulus', 'ylabel':'v-value'}
 @vplot stimulus->response
+
