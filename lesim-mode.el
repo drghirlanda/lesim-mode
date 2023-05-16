@@ -240,6 +240,128 @@ This function is bound to \\[lesim-backward-word]"
     (backward-char)
     (lesim-backward-word)))
 
+;; Now we def vars and funs to retrieve lesim parametrs and keywords
+;; from github to keep syntax highlighting and abbrev-table up to
+;; date. The only information that may need updating is what entry
+;; separates parameters from other keywords in parameters.py. As of
+;; 2023-05-16, this is kw.TITLE. This matters for lesim-template,
+;; which uses the list of paramaters.
+
+(defvar lesim-url "https://raw.githubusercontent.com/learningsimulator/learningsimulator/master/"
+  "Learning Simulator code base.")
+
+(defvar lesim-parameters '()
+  "Learning Simulator parameters.")
+
+(defvar lesim-keywords '()
+  "Learning Simulator keywords (not parameters or commands).")
+
+(defvar lesim-commands '()
+  "Learning Simulator @ commands.")
+
+(defun lesim-name-p (string)
+  ""
+  (if (eq string nil)
+      nil
+    (let ((case-fold-search t))
+      (string-match-p "\\`[a-z_][a-z0-9_]*\\'" string))))
+
+(defun lesim-interval-p (string interval)
+  ""
+  (let ((x (string-to-number string)))
+    (and (>= x (nth 0 interval)) (<= x (nth 1 interval)))))
+
+(defun lesim-scalar-p (string &optional interval)
+  ""
+  (when (string-match-p "\\`[+-]?\\([0-9]+\\.?[0-9]*\\|[0-9]*\\.?[0-9]+\\)\\'" string)
+    (if interval
+	(lesim-interval-p string interval)
+      t)))
+
+(defun lesim-natnum-p (string &optional interval)
+  ""
+  (when (string-match-p "\\`+?[1-9][0-9]*\\'" string)
+    (if interval
+	(lesim-interval-p string interval)
+      t)))
+
+(defun lesim-list-p (string)
+  ""
+  (let* ((items (split-string string ",")))
+    (while (lesim-name-p (pop items)))
+    (equal 0 (length items))))
+    
+
+(defun lesim-s-dict-p (string)
+  ""
+  (let ((valid t)
+	(items (split-string string "," t "\\s-*")))
+    (while valid
+      (let* ((item (pop items))
+	     (setq valid (string-match-p
+			  (concat lesim--name "\\s-*:\\s-* 
+				 lesim--name "\\)?"))))
+    valid))
+
+
+
+
+(defun lesim-validate-value-p (name value)
+  "Return non-nil if VALUE is valid for NAME, nil otherwise."
+  (let* ((item (assoc-string name (append lesim-parameters lesim-keywords) t))
+	 (specs (nth 2 item)))
+    (when item
+      (let ((specs (split-string specs " or "))
+	    found)
+	(while (and (length specs) (not found))
+	  (let ((spec (downcase (pop specs))))
+	    (setq found (and
+			 (string-search "scalar" spec)
+			 (string-match-p lesim-scalar-re value)))
+	    (unless found
+	      (seqt found (and
+			   (string-search "->" spec)
+			   (lesim-dict-p value))))
+	    (unless found
+	      (setq found (and
+		    
+	  
+  
+
+(defun lesim--retrieve (what)
+  ""
+  (if (member what '("parameters" "keywords"))
+      (url-retrieve (concat lesim-url what ".py")
+		    (intern (concat "lesim--process-" what))
+		    nil
+		    t)
+    (user-error "Cannot retrieve " what)))
+
+(defun lesim--process-parameters (status)
+  ""
+  (unless (plist-get status :error)
+    (setq lesim-parameters '())
+    (setq lesim-keywords '())
+    (goto-char (point-min))
+    (let ((parameter t))
+      (while (re-search-forward "kw\\.\\([[:upper:]_]+\\):[ \t]+\\(.+?\\),[ \t]+# \\(.+\\)?  " nil t)
+	(let ((kwd (downcase (match-string 1)))
+	      (def (match-string 2))
+	      (val (match-string 3)))
+	  (dolist (str '("'" "list()" "dict()"))
+	    (setq def (string-replace str "" def)))
+	  (when (string= kwd "title") (setq parameter nil))
+	  (if parameter
+	      (push (list kwd def val) lesim-parameters)
+	    (push (list kwd def val) lesim-keywords)))))))
+
+(defun lesim--process-commands (status)
+  ""
+  (unless (plist-get status :error)
+    (setq lesim-commands '())
+    (while (re-search-forward "'\\(@[[:alpha:]]+\\)'" nil t)
+      (push (match-string 1) lesim-commands))))
+
 ;; This part defines lesim keywords whose values are strings, numbers,
 ;; or either. Used for highlighting and in lesim-template.
 
