@@ -470,7 +470,7 @@ code."
     ("@we" "@wexport")
     ("@ne" "@nexport")
     ("@he" "@hexport")
-    ("@e" "@export")
+    ("@e" "@export"))
   "Abbrev table for lesim-mode."
   :regexp "\\(@[[:alpha:]]+\\)"
   :case-fixed nil
