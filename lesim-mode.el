@@ -40,6 +40,10 @@
 A valid name starts with a letter or underscore and continues
 with letters, digits, and underscores.")
 
+(defvar lesim--scalar
+  "[+-]?\\([0-9]*\\.[0-9]+\\|[0-9]+\\.?[0-9]*\\)"
+  "Regexp to match Learning Simulator scalars.")
+
 (defun lesim--value-of (this)
   "Scan buffer for a definition of THIS.
 If found, split on \",\" and return as list."
@@ -222,7 +226,10 @@ This function is bound to \\[lesim-forward-word]"
            (reg-beg (nth 0 region))
            (reg-end (nth 1 region)))
       (lesim-validate region)
-      (re-search-forward lesim--name (point-max) t 2)
+      (re-search-forward (concat lesim--name
+				 "\\|"
+				 lesim--scalar)
+			 (point-max) t 2)
       (goto-char (match-beginning 0))
       (when (and region (> (point) reg-end))
         (goto-char reg-beg)
@@ -234,7 +241,12 @@ This function is bound to \\[lesim-forward-word]"
 This function is bound to \\[lesim-backward-word]"
   (interactive)
   (lesim-validate (lesim--phase-region-at-point))
-  (re-search-backward (concat "\\b" lesim--name) (point-min) t 1)
+  (re-search-backward (concat "\\b\\("
+			      lesim--name
+			      "\\|"
+			      lesim--scalar
+			      "\\)")
+		      (point-min) t 1)
   (goto-char (match-beginning 0))
   (when (eq ?_ (char-before))
     (backward-char)
