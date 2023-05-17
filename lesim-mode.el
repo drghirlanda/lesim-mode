@@ -259,75 +259,76 @@ This function is bound to \\[lesim-backward-word]"
 (defvar lesim-commands '()
   "Learning Simulator @ commands.")
 
-(defun lesim-name-p (string)
+(defun lesim-name-p (string &optional bopen eopen)
   ""
   (if (eq string nil)
       nil
-    (let ((case-fold-search t))
-      (string-match-p "\\`[a-z_][a-z0-9_]*\\'" string))))
+    (save-match-data
+      (let ((case-fold-search t)
+	    (regexp "[a-z_][a-z0-9_]*"))
+	(unless bopen (setq regexp (concat "\\`" regexp)))
+	(unless eopen (setq regexp (concat regexp "\\'")))
+	(if (string-match regexp string)
+	    (match-end 0)
+	  nil)))))
 
 (defun lesim-interval-p (string interval)
   ""
   (let ((x (string-to-number string)))
     (and (>= x (nth 0 interval)) (<= x (nth 1 interval)))))
 
-(defun lesim-scalar-p (string &optional interval)
+(defun lesim-scalar-p (string &optional bopen eopen interval)
   ""
-  (when (string-match-p "\\`[+-]?\\([0-9]+\\.?[0-9]*\\|[0-9]*\\.?[0-9]+\\)\\'" string)
-    (if interval
-	(lesim-interval-p string interval)
-      t)))
+  (if (eq string nil)
+      nil
+    (save-match-data
+      (let ((regexp "[+-]?\\([0-9]+\\.?[0-9]*\\|[0-9]*\\.?[0-9]+\\)"))
+	(unless bopen (setq regexp (concat "\\`" regexp)))
+	(unless eopen (setq regexp (concat regexp "\\'")))
+	(if (string-match regexp string)
+	    (if (and interval (lesim-interval-p string interval))
+		(match-end 0)
+	      nil)
+	  nil)))))
 
-(defun lesim-natnum-p (string &optional interval)
+(defun lesim-natnum-p (string &optional bopen eopen interval)
   ""
-  (when (string-match-p "\\`+?[1-9][0-9]*\\'" string)
-    (if interval
-	(lesim-interval-p string interval)
-      t)))
+  (let ((regexp "+?[1-9][0-9]*"))
+    (unless bopen (setq regexp (concat "\\`" regexp)))
+    (unless eopen (setq regexp (concat regexp "\\'")))
+    (when (string-match-p regexp string)
+      (if interval
+	  (lesim-interval-p string interval)
+	t))))
 
 (defun lesim-list-p (string)
   ""
-  (let* ((items (split-string string ",")))
-    (while (lesim-name-p (pop items)))
-    (equal 0 (length items))))
-    
+  (let* ((errors 0)
+	 (items (split-string string ",")))
+    (while (equal errors 0)
+      (unless (lesim-name-p (pop items))
+	(setq errors (1+ errors))))
+    (equal errors 0)))
 
-(defun lesim-s-dict-p (string)
+(defun lesim-elenty-type (string)
+
+(defun lesim-dict-p (string)
   ""
-  (let ((valid t)
-	(items (split-string string "," t "\\s-*")))
-    (while valid
-      (let* ((item (pop items))
-	     (setq valid (string-match-p
-			  (concat lesim--name "\\s-*:\\s-* 
-				 lesim--name "\\)?"))))
-    valid))
-
-
-
-
-(defun lesim-validate-value-p (name value)
-  "Return non-nil if VALUE is valid for NAME, nil otherwise."
-  (let* ((item (assoc-string name (append lesim-parameters lesim-keywords) t))
-	 (specs (nth 2 item)))
-    (when item
-      (let ((specs (split-string specs " or "))
-	    found)
-	(while (and (length specs) (not found))
-	  (let ((spec (downcase (pop specs))))
-	    (setq found (and
-			 (string-search "scalar" spec)
-			 (string-match-p lesim-scalar-re value)))
-	    (unless found
-	      (seqt found (and
-			   (string-search "->" spec)
-			   (lesim-dict-p value))))
-	    (unless found
-	      (setq found (and
-		    
+  ;; A dict value can be of these forms:
+  ;; scalar
+  ;; name:scalar,name:scalar,...
+  ;; name->name:scalar,name->name:scalar,...
+  ;; name:(name,name,...)|name,name:(name,name,...)|name
+  (save-match-data
+    (let ((errors 0))
+      (while (and (equal errors 0) (> 0 (length string)))
+	(if (lesim-scalar-p string)
+	    t
+	  (if (not (lesim-name-p string nil t))
+	      (setq errors (1+ errors))
+	    (
 	  
-  
-
+	  
 (defun lesim--retrieve (what)
   ""
   (if (member what '("parameters" "keywords"))
