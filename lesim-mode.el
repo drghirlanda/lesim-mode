@@ -259,37 +259,38 @@ This function is bound to \\[lesim-backward-word]"
 (defvar lesim-commands '()
   "Learning Simulator @ commands.")
 
+;; Lesim type predicates
+
+(defvar lesim--name-re "[a-z_][a-z0-9_]*"
+  "")
+
 (defun lesim-name-p (string &optional bopen eopen)
   ""
-  (if (eq string nil)
-      nil
-    (save-match-data
-      (let ((case-fold-search t)
-	    (regexp "[a-z_][a-z0-9_]*"))
-	(unless bopen (setq regexp (concat "\\`" regexp)))
-	(unless eopen (setq regexp (concat regexp "\\'")))
-	(if (string-match regexp string)
-	    (match-end 0)
-	  nil)))))
+  (when string
+    (let ((case-fold-search t)
+	  (regexp lesim--name-re))
+      (unless bopen (setq regexp (concat "\\`" regexp)))
+      (unless eopen (setq regexp (concat regexp "\\'")))
+      (string-match-p regexp string))))
 
 (defun lesim-interval-p (string interval)
   ""
   (let ((x (string-to-number string)))
     (and (>= x (nth 0 interval)) (<= x (nth 1 interval)))))
 
+(defvar lesim--scalar-re "[+-]?\\([0-9]+\\.?[0-9]*\\|[0-9]*\\.?[0-9]+\\)"
+  "")
+
 (defun lesim-scalar-p (string &optional bopen eopen interval)
   ""
-  (if (eq string nil)
-      nil
-    (save-match-data
-      (let ((regexp "[+-]?\\([0-9]+\\.?[0-9]*\\|[0-9]*\\.?[0-9]+\\)"))
-	(unless bopen (setq regexp (concat "\\`" regexp)))
-	(unless eopen (setq regexp (concat regexp "\\'")))
-	(if (string-match regexp string)
-	    (if (and interval (lesim-interval-p string interval))
-		(match-end 0)
-	      nil)
-	  nil)))))
+  (when string
+    (let ((regexp lesim--scalar-re))
+      (unless bopen (setq regexp (concat "\\`" regexp)))
+      (unless eopen (setq regexp (concat regexp "\\'")))
+      (if (string-match-p regexp string)
+	  (if interval
+	      (lesim-interval-p string interval)
+	    t)))))
 
 (defun lesim-natnum-p (string &optional bopen eopen interval)
   ""
@@ -301,17 +302,56 @@ This function is bound to \\[lesim-backward-word]"
 	  (lesim-interval-p string interval)
 	t))))
 
+(defun lesim-default-p (string &optional bopen eopen)
+  ""
+  (let ((regexp "default:"))
+    (unless bopen (setq regexp (concat "\\`" regexp)))
+    (save-match-data
+      (when (string-match "default:\\(.+\\)" string)
+	(lesim-scalar-p (match-string 1 string) t)))))
+
 (defun lesim-list-p (string)
   ""
   (let* ((errors 0)
-	 (items (split-string string ",")))
-    (while (equal errors 0)
+	 (items (split-string string "," t "(?)?")))
+    (while (and (equal errors 0) (> (length items) 0)) 
       (unless (lesim-name-p (pop items))
 	(setq errors (1+ errors))))
     (equal errors 0)))
 
-(defun lesim-elenty-type (string)
-
+(defun lesim-type (string)
+  ""
+  (cond
+   ;; natnum
+   ((lesim-natnum-p string)
+    'natnum)
+   ;; scalar:
+   ((lesim-scalar-p string)
+    'scalar)
+   ;; name:
+   ((lesim-name-p string)
+    'name)
+   ;; default: (must come before name:scalar)
+   ((lesim-default-p string)
+    'default)
+   ;; name:scalar:
+   ((let ((ns (split-string string ":")))
+      (and (lesim-name-p (nth 0 ns)) (lesim-scalar-p (nth 1 ns))))
+    'name-scalar)
+   ;; name:list:
+   ((let ((ns (split-string string ":")))
+      (and (lesim-name-p (nth 0 ns)) (lesim-list-p (nth 1 ns))))
+    'name-list)
+   ;; name->name:scalar:
+   ((let ((nss (split-string string "->")))
+      (and (lesim-name-p (nth 0 nss))
+	   (equal 'name-scalar (lesim-type (nth 1 nss)))))
+    'name-name-scalar)
+   ;; list:
+   ((lesim-list-p string)
+    'list)
+   (t nil)))
+   
 (defun lesim-dict-p (string)
   ""
   ;; A dict value can be of these forms:
@@ -319,16 +359,30 @@ This function is bound to \\[lesim-backward-word]"
   ;; name:scalar,name:scalar,...
   ;; name->name:scalar,name->name:scalar,...
   ;; name:(name,name,...)|name,name:(name,name,...)|name
-  (save-match-data
-    (let ((errors 0))
-      (while (and (equal errors 0) (> 0 (length string)))
-	(if (lesim-scalar-p string)
-	    t
-	  (if (not (lesim-name-p string nil t))
-	      (setq errors (1+ errors))
-	    (
-	  
-	  
+  ;; The trick here is that they must be homogeneous, apart from a possible default:
+  (let ((typs '())
+	(elts (split-string string "," t "\\s-*")))
+    (while (> (length elts) 0)
+      (let ((elt (pop elts)))
+	(when (string-match-p "(" elt)
+	  (while (and (not (string-match-p ")" elt))
+		      (> (length elts) 0))
+	    (setq elt (concat elt (pop elts)))))
+	(push (lesim-type elt) typs)))
+    (let ((typ (pop typs))
+	  (errors 0))
+      (while (equal typ 'default)
+	(setq typ (pop typs)))
+      (while (and (equal errors 0) (> (length typs) 0))
+	(let ((typ2 (pop typs)))
+	  (unless (or (equal typ typ2) (equal typ2 'default))
+	    (setq errors (1+ errors)))))
+      (equal errors 0))))
+
+(defun lesim-valid-elt (string)
+  ""
+  (not (null (lesim-type string))))
+
 (defun lesim--retrieve (what)
   ""
   (if (member what '("parameters" "keywords"))
