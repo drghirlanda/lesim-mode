@@ -19,19 +19,20 @@ software architect [[https://github.com/markusrobertjonsson][Markus Jonsson]].
 * Installing
 
 Install from here for now, hopefully from MELPA later. It's enough to
-put ~lesim-mode.el~ somewhere in your Emacs [[https://www.emacswiki.org/emacs/LoadPath][load path]] and then ~(require 'lesim-mode)~ in your .emacs.
+put ~lesim-mode.el~ somewhere in your Emacs [[https://www.emacswiki.org/emacs/LoadPath][load path]] and then
+~(require 'lesim-mode)~ in your ~.emacs.d/init.el~.
 
 * Using
 
-- Syntax coloring is enabled automatically
-- Unassigned parameters are automatically.
+- Syntax coloring is enabled automatically.
+- Parameter assignments are validated automatically and highlighted to
+  reflect if they are correct and incorrect.
 - ~C-c C-c~ runs the script in the Learning Simulator, highlighting
   any errors.
-- ~C-c C-a~ aligns phase blocks at ~|~ signs and parameter blocks at
-  ~=~ signs.
 - ~TAB~ and ~Shift-TAB~ in move between fields in phase blocks, and by
-  word elsewhere. In phase blocks, they also highlight misspelled
-  stimuli, behaviors, and phase line names.
+  word elsewhere. They also align phase blocks as ~|~ signs and
+  parameter blocks at ~=~ signs. In phase blocks, they also highlight
+  misspelled stimuli, behaviors, and phase line names.
 - ~C-c C-t~ inserts a template script (see [[Configuration]]).
 
 * Configuration
