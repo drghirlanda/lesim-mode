@@ -609,9 +609,9 @@ FMT and ARGS are treated like in `message'."
   (remove-text-properties (point-min) limit 'font-lock-multiline)
   (save-excursion
     (save-match-data
-      ;; Learning Simulator multiline comments have identical start
-      ;; and end strings. We must start from point-min to understand
-      ;; if we are inside or outside a comment:
+      ;; Learning Simulator multiline comments start and end with
+      ;; ###. We must start from point-min to know if we are inside or
+      ;; outside a comment:
       (goto-char (point-min))
       (let ((comments nil)  ; list of beg-end pairs
 	    (commlast nil)) ; end of last comment within limit
@@ -621,7 +621,7 @@ FMT and ARGS are treated like in `message'."
 	(while (> (length comments) 1)
 	  (let* ((beg (pop comments))
 		 (end (pop comments))
-		 (ove (make-overlay beg end)))
+		 (ove (make-overlay beg (+ 3 end)))) ; include end ### 
 	    (setq commlast end)
 	    (put-text-property beg end 'font-lock-multiline t)
 	    (overlay-put ove 'face font-lock-comment-face)
