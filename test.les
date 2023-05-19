@@ -21,8 +21,7 @@ u                 = reward:10, default:0
 START_TRIAL  stimulus   | response: REWARD(.5) | NO_REWARD
 REWARD       reward     | START_TRIAL
 NO_REWARD    background | START_TRIAL
-###
-
+### 
 @run training
 
 @figure v(stimulus->response)

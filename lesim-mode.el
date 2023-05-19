@@ -619,7 +619,8 @@ FMT and ARGS are treated like in `message'."
 	  (setq beg (match-beginning 0)))))
     (when (and beg end)
       (setq font-lock-beg beg)
-      (setq font-lock-end end))))
+      (setq font-lock-end end)
+      t)))
 
 (defun lesim--match-multiline-comment (limit)
   "Highlight multiline comment between point and LIMIT."
@@ -673,7 +674,7 @@ match valid ones."
   (setq-local comment-start "#")
   (setq-local comment-end "")
   ;; search-based highlighting:
-;  (add-to-list 'font-lock-extend-region-functions 'lesim--extend-region)
+;;  (add-to-list 'font-lock-extend-region-functions #'lesim--extend-region)
   (setq-local lesim--keywords
               `(
                 ;; end-of-line comments:
@@ -690,7 +691,7 @@ match valid ones."
                 ;; invalid parameters:
 		((lambda (limit) (lesim--match-parameter limit t)) . (2 lesim-invalid-face))
                 ;; multiline comments:
-;		(lesim--match-multiline-comment (0 font-lock-comment-face t))
+		(lesim--match-multiline-comment (0 font-lock-comment-face t))
 		))
   (setq-local font-lock-defaults '(lesim--keywords nil t)))
 
