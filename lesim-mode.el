@@ -280,7 +280,7 @@ This function is bound to \\[lesim-backward-word]"
 (defun lesim-name-p (string &optional bopen eopen)
   "Return non-nil if STRING is a valid Learning Simulator name.
 If BOPEN is nil, the name must be at the start og STRING,
-otherwise is can start later. EOPEN works similarly for the end
+otherwise is can start later.  EOPEN works similarly for the end
 of STRING."
   (when string
     (let ((case-fold-search t)
@@ -295,11 +295,11 @@ of STRING."
     (and (>= x (nth 0 interval)) (<= x (nth 1 interval)))))
 
 (defvar lesim--scalar-re "[+-]?\\([0-9]+\\.?[0-9]*\\|[0-9]*\\.?[0-9]+\\)"
-  "")
+  "Regexp to match Learning Simulator scalars.")
 
 (defun lesim-scalar-p (string &optional bopen eopen interval)
   "Return non-nil if STRING is a real number.
-For INTERVAL, see `lesim-interval-p'. For BOPEN and EOPEN, see
+For INTERVAL, see `lesim-interval-p'.  For BOPEN and EOPEN, see
 `lesim-name-p'."
   (when string
     (let ((regexp lesim--scalar-re))
@@ -312,7 +312,7 @@ For INTERVAL, see `lesim-interval-p'. For BOPEN and EOPEN, see
 
 (defun lesim-natnum-p (string &optional bopen eopen interval)
   "Return non-nil if STRING is a positive integer.
-For INTERVAL, see `lesim-interval-p'. For BOPEN and EOPEN, see
+For INTERVAL, see `lesim-interval-p'.  For BOPEN and EOPEN, see
 `lesim-name-p'."
   (let ((regexp "+?[1-9][0-9]*"))
     (unless bopen (setq regexp (concat "\\`" regexp)))
@@ -329,13 +329,13 @@ For BOPEN and EOPEN, see `lesim-name-p'."
     (unless bopen (setq regexp (concat "\\`" regexp)))
     (save-match-data
       (when (string-match "default:\\s-*\\(.+?\\)" string)
-	(lesim-scalar-p (match-string 1 string) t)))))
+	(lesim-scalar-p (match-string 1 string) t eopen)))))
 
 (defun lesim-list-p (string)
   "Return non-nil if STRING is a comma-separated list of strings."
   (let* ((errors 0)
 	 (items (split-string string ",\s*" t "(?)?")))
-    (while (and (equal errors 0) (> (length items) 0)) 
+    (while (and (equal errors 0) (> (length items) 0))
       (unless (lesim-name-p (pop items))
 	(setq errors (1+ errors))))
     (equal errors 0)))
@@ -344,8 +344,8 @@ For BOPEN and EOPEN, see `lesim-name-p'."
   "Return the Learning Simulator type of STRING.
 The return value (a symbol) is natnum, scalar, name, name-scalar,
 name-name-scalar, list, dict, or if STRING does not match any of
-these types. If NODICT is non-nil, the dict type is not checked
-for. (This is used in `lesim-dict-p' avoid infinite loops.)"
+these types.  If NODICT is non-nil, the dict type is not checked
+for.  (This is used in `lesim-dict-p' avoid infinite loops.)"
   (cond
    ;; natnum
    ((lesim-natnum-p string)
@@ -416,7 +416,7 @@ for. (This is used in `lesim-dict-p' avoid infinite loops.)"
 
 (defun lesim--retrieve (what)
   "Retrieve a list of WHAT from Learning Simulator code.
-The code is looked for at `lesim-url'. WHAT can be \"parameters\"
+The code is looked for at `lesim-url'.  WHAT can be \"parameters\"
 or \"keywords\"."
   (if (member what '("parameters" "keywords"))
       (url-retrieve (concat lesim-url what ".py")
@@ -438,9 +438,10 @@ See `lesim-type' for a list of types."
 		#'string-match-p))))
 
 (defun lesim--parse-parameters (status)
-  "Parse parameters and keywordsq in Learning Simulator code.
+  "Parse parameters and keywords in Learning Simulator code.
 This function is called by `lesim--retrieve' in a buffer
-containing parameters.py."
+containing parameters.py.  It checks that STATUS does not contain
+errors."
   (setq lesim-parameters '())
   (setq lesim-keywords '())
   (unless (plist-get status :error)
@@ -465,7 +466,8 @@ containing parameters.py."
 (defun lesim--parse-keywords (status)
   "Parse @ keywords in Learning Simulator code.
 This function is called by `lesim--retrieve' in a buffer
-containing keywords.py."
+containing keywords.py.  It checks that STATUS does not contain
+errors."
   (unless (plist-get status :error)
     (setq lesim-commands '())
     (while (re-search-forward "'\\(@[[:alpha:]]+\\)'" nil t)
@@ -604,34 +606,33 @@ FMT and ARGS are treated like in `message'."
   (remove-overlays (point) (point-max) 'lesim 'multiline)
   ;; The font-lock-multilne property helps font-lock identify
   ;; multiline constructs. We remove it, then reinstate it below:
-  (remove-text-properties (point-min) limit 'font-lock-multiline) 
+  (remove-text-properties (point-min) limit 'font-lock-multiline)
   (save-excursion
     (save-match-data
       ;; Learning Simulator multiline comments have identical start
       ;; and end strings. We must start from point-min to understand
       ;; if we are inside or outside a comment:
       (goto-char (point-min))
-      (let (comments  ; list of beg-end pairs
-	    commlast) ; end of last comment within limit
+      (let ((comments nil)  ; list of beg-end pairs
+	    (commlast nil)) ; end of last comment within limit
 	(while (search-forward "###" limit t)
 	  (push (match-beginning 0) comments))
 	(setq comments (reverse comments))
 	(while (> (length comments) 1)
 	  (let* ((beg (pop comments))
 		 (end (pop comments))
-		 (commlast end)
 		 (ove (make-overlay beg end)))
+	    (setq commlast end)
 	    (put-text-property beg end 'font-lock-multiline t)
 	    (overlay-put ove 'face font-lock-comment-face)
-	    (overlay-put ove 'lesim 'multiline)
-	    ))
+	    (overlay-put ove 'lesim 'multiline)))
 	(when commlast
-	  (set-match-data (font-lock-beg commlast))
+	  (set-match-data (list font-lock-beg commlast))
 	  t)))))
 
 (defun lesim--match-parameter (limit &optional invalid)
   "Font-lock matcher for Learning Simulator parameters.
-Match parameter assigments between (point) and LIMIT. If INVALID
+Match parameter assigments between (point) and LIMIT.  If INVALID
 is nil, matching syntactically invalid assignments, otherwise
 match valid ones."
   (let* ((rex1 (regexp-opt lesim-parameter-names "\\(?1:"))
@@ -683,8 +684,7 @@ match valid ones."
                 ;; valid parameters:
 		(lesim--match-parameter . (2 lesim-parameter-face))
                 ;; invalid parameters:
-		((lambda (limit) (lesim--match-parameter limit t)) . (2 lesim-invalid-face))
-		))
+		((lambda (limit) (lesim--match-parameter limit t)) . (2 lesim-invalid-face))))
   (setq-local font-lock-defaults '(lesim--keywords nil t)))
 
 ;;;###autoload
