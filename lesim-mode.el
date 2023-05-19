@@ -167,11 +167,11 @@ If point is not in a phase block, do nothing."
           ;; align line id and stimulus:
           (align-regexp beg end "\\(\\s-*\\)\\s-" 1 1 nil)
           ;; align | clauses:
-          (align-regexp beg end "\\(\\s-*\\)|" 1 1 t)
+          (align-regexp beg end "\\(\\s-*\\)|" 1 1 t))))))
           ;; align comments
-          (goto-char (nth 0 region))
-          (while (re-search-forward "^\\s-*\\(#+\\s-*\\)" end t)
-            (replace-match "# ")))))))
+          ;; (goto-char (nth 0 region))
+          ;; (while (re-search-forward "^\\s-*\\(#+\\s-+\\)" end t)
+          ;;   (replace-match "# ")))))))
 
 (defun lesim--align-parameters ()
   "Align parameter block at point.
@@ -599,36 +599,41 @@ FMT and ARGS are treated like in `message'."
 (defvar font-lock-beg) ; avoid byte-compile warnings
 (defvar font-lock-end)
 
+(defun lesim--extend-region ()
+  "Mark multiline comments."
+  ;; count ### before start to see if we are in a comment:
+  (let ((count 0)
+	beg
+	end)
+    (save-excursion
+      (goto-char (point-min))
+      (while (search-forward "###" font-lock-beg t)
+	(setq count (1+ count)))
+      (goto-char font-lock-beg)
+      ;; If in a comment, try to find the end. If found, adjust
+      ;; font-lock-beg and font-lock-end:
+      (unless (= 0 (/ count 2))
+	(when (search-forward "###" limit t)
+	  (setq end (match-end 0)))
+	(when (search-backward "###" nil t)
+	  (setq beg (match-beginning 0)))))
+    (when (and beg end)
+      (setq font-lock-beg beg)
+      (setq font-lock-end end))))
+
 (defun lesim--match-multiline-comment (limit)
   "Highlight multiline comment between point and LIMIT."
-  ;; To work around some quirks in multiline highlighting, we do our
-  ;; own highlighting rather than delegating to font-lock-mode.
-  (remove-overlays (point) (point-max) 'lesim 'multiline)
-  ;; The font-lock-multilne property helps font-lock identify
-  ;; multiline constructs. We remove it, then reinstate it below:
-  (remove-text-properties (point-min) limit 'font-lock-multiline)
-  (save-excursion
-    (save-match-data
-      ;; Learning Simulator multiline comments start and end with
-      ;; ###. We must start from point-min to know if we are inside or
-      ;; outside a comment:
-      (goto-char (point-min))
-      (let ((comments nil)  ; list of beg-end pairs
-	    (commlast nil)) ; end of last comment within limit
-	(while (search-forward "###" limit t)
-	  (push (match-beginning 0) comments))
-	(setq comments (reverse comments))
-	(while (> (length comments) 1)
-	  (let* ((beg (pop comments))
-		 (end (pop comments))
-		 (ove (make-overlay beg (+ 3 end)))) ; include end ### 
-	    (setq commlast end)
-	    (put-text-property beg end 'font-lock-multiline t)
-	    (overlay-put ove 'face font-lock-comment-face)
-	    (overlay-put ove 'lesim 'multiline)))
-	(when commlast
-	  (set-match-data (list font-lock-beg commlast))
-	  t)))))
+  (let (beg end)
+    (save-excursion
+      (save-match-data
+	(when (search-forward "###" limit t)
+	  (setq beg (match-beginning 0)))
+	(when (search-forward "###" limit t)
+	  (setq end (match-end 0)))))
+    (when (and beg end)
+      (goto-char end)
+      (set-match-data (list beg end))
+      end)))
 
 (defun lesim--match-parameter (limit &optional invalid)
   "Font-lock matcher for Learning Simulator parameters.
@@ -636,7 +641,7 @@ Match parameter assigments between (point) and LIMIT.  If INVALID
 is nil, matching syntactically invalid assignments, otherwise
 match valid ones."
   (let* ((rex1 (regexp-opt lesim-parameter-names "\\(?1:"))
-	 (rex2 (concat rex1 "[ \t]*=[ \t]*\\(.+?\\)\\s-*$")))
+	 (rex2 (concat rex1 "[ \t]*=[ \t]*\\(.+?\\)\\s-*[#\n]")))
     (when (re-search-forward rex2 limit t)
       (let* ((para (match-string 1))
 	     (valu (match-string 2))
@@ -668,12 +673,11 @@ match valid ones."
   (setq-local comment-start "#")
   (setq-local comment-end "")
   ;; search-based highlighting:
+;  (add-to-list 'font-lock-extend-region-functions 'lesim--extend-region)
   (setq-local lesim--keywords
               `(
-                ;; multiline comments:
-		lesim--match-multiline-comment
                 ;; end-of-line comments:
-                ("\\(#.*\\)$" . (1 font-lock-comment-face))
+                ("\\(#[ \t]+.*\\)$" . (1 font-lock-comment-face))
                 ;; @ keywords:
                 ("\\(@[[:alpha:]_]+\\)\\>" . (1 font-lock-keyword-face))
                 ;; functions:
@@ -684,7 +688,10 @@ match valid ones."
                 ;; valid parameters:
 		(lesim--match-parameter . (2 lesim-parameter-face))
                 ;; invalid parameters:
-		((lambda (limit) (lesim--match-parameter limit t)) . (2 lesim-invalid-face))))
+		((lambda (limit) (lesim--match-parameter limit t)) . (2 lesim-invalid-face))
+                ;; multiline comments:
+;		(lesim--match-multiline-comment (0 font-lock-comment-face t))
+		))
   (setq-local font-lock-defaults '(lesim--keywords nil t)))
 
 ;;;###autoload
