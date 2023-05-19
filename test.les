@@ -14,7 +14,7 @@ start_w           = 0.1
 alpha_v           = 0.1
 u                 = reward:10, default:0
 
-@phase training stop: stimulus==10
+@phase training stop: stimulus==500
 START_TRIAL  stimulus   | response: REWARD(.5) | NO_REWARD
 REWARD       reward     | START_TRIAL
 NO_REWARD    background | START_TRIAL
