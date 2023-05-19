@@ -661,7 +661,6 @@ match valid ones."
   ;; keymap:
   (define-key lesim-mode-map lesim-run-key #'lesim-run-and-error)
   (define-key lesim-mode-map lesim-template-key #'lesim-template)
-  (define-key lesim-mode-map lesim-align-key #'lesim-align)
   (define-key lesim-mode-map [backtab] #'lesim-backward-word)
   (lesim-debug "Keymap is %s" (current-local-map))
   (setq-local indent-line-function #'lesim-forward-word)
