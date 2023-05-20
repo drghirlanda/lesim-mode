@@ -132,7 +132,7 @@ REGION must be a non-nil return value of
         (reg-end (nth 1 region)))
     (save-excursion
       (goto-char reg-beg)
-      (forward-line)
+;      (forward-line)
       (while (re-search-forward (concat "\\(" lesim--name-re "\\)") reg-end t)
         (let* ((word (match-string 1))
                (word-beg (match-beginning 1))
@@ -142,7 +142,7 @@ REGION must be a non-nil return value of
                (lines (lesim--phase-lines region)))
           (lesim-debug "Validating %s" word)
           (when (and (not (string-match "^\\s-*#" (thing-at-point 'line)))
-                     (not (member word (append behaviors lines stimuli))))
+                     (not (member word (append behaviors lines stimuli lesim-commands))))
             (lesim-debug "%s is invalid" word)
             (let ((ov (make-overlay word-beg word-end)))
               (overlay-put ov 'face lesim-invalid-face)
@@ -675,7 +675,22 @@ match valid ones."
 	    (if invalid
 		(not result)
 	      result)))))))
-		      
+
+(defun lesim--match-command (limit &optional invalid)
+  ""
+  (when (re-search-forward "@[[:alpha:]_]+" limit t)
+    (let* ((com (match-string 0))
+	   (beg (match-beginning 0))
+	   (end (match-end 0))
+	   (mat (list beg end beg end))
+	   (res nil))
+      (if (member com lesim-commands)
+	  (cond
+	   (t
+	    (setq res t))))
+      (set-match-data mat)
+      (if invalid (not res) res))))
+
 ;;; Lesim-Mode definition
 
 ;;;###autoload
@@ -705,11 +720,14 @@ match valid ones."
                 ;; eol comments: (2 patterns to avoid ## and ### at bol)
                 ("^\\(#[ \t]+.*\\)$" . (1 font-lock-comment-face))
                 ("[^#]\\(#[ \t]+.*\\)$" . (1 font-lock-comment-face))
-                ;; @ keywords:
-                ("\\(@[[:alpha:]_]+\\)\\>" . (1 font-lock-keyword-face))
+                ;; valid @ commands:
+		(lesim--match-command . (1 font-lock-keyword-face))
+                ;; invalid @ commands:
+		((lambda (limit) (lesim--match-command limit t)) . (1 lesim-invalid-face))
                 ;; functions:
-                ("count\\(_line\\|_reset\\)?" . font-lock-function-name-face)
-                ("choice\\|rand" . font-lock-function-name-face)
+		(,(regexp-opt (list "count" "count_line" "count_reset" "choice" "rand") 'words) . font-lock-function-name-face)
+		;; other keywords:
+		(,(regexp-opt (mapcar (lambda (x) (car x)) lesim-keywords) 'words) . font-lock-function-name-face)
                 ;; phase line names:
                 ("^\\s-*\\([[:alpha:]_][[:alnum:]_]+\\)\s+.*?|" . (1 font-lock-constant-face))
                 ;; valid parameters:
