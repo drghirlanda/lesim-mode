@@ -677,8 +677,9 @@ match valid ones."
 ;;  (add-to-list 'font-lock-extend-region-functions #'lesim--extend-region)
   (setq-local lesim--keywords
               `(
-                ;; end-of-line comments:
-                ("\\(#[ \t]+.*\\)$" . (1 font-lock-comment-face))
+                ;; eol comments: (2 patterns to avoid ## and ### at bol)
+                ("^\\(#[ \t]+.*\\)$" . (1 font-lock-comment-face))
+                ("[^#]\\(#[ \t]+.*\\)$" . (1 font-lock-comment-face))
                 ;; @ keywords:
                 ("\\(@[[:alpha:]_]+\\)\\>" . (1 font-lock-keyword-face))
                 ;; functions:

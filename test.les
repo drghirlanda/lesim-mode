@@ -1,5 +1,5 @@
 # title:   A simple test script 
-# author:  Stefano Ghirlanda 
+# author:  Stefano Ghirlanda
 # date:    2023-05-03 
 # summary: Just to show off lesim-mode
 
@@ -16,12 +16,12 @@ start_w           = 0.1
 alpha_v           = 0.1
 u                 = reward:10, default:0
 
-### 
 @phase training stop: stimulus==500
 START_TRIAL  stimulus   | response: REWARD(.5) | NO_REWARD
 REWARD       reward     | START_TRIAL
 NO_REWARD    background | START_TRIAL
-### 
+
+
 @run training
 
 @figure v(stimulus->response)
