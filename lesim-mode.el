@@ -272,6 +272,9 @@ This function is bound to \\[lesim-backward-word]"
 (defvar lesim-keywords nil
   "Learning Simulator keywords (not parameters or commands).")
 
+(defvar lesim-mechanisms nil
+  "Learning Simulator mechanism names.")
+
 (defvar lesim-commands '()
   "Learning Simulator @ commands.")
 
@@ -322,6 +325,10 @@ For INTERVAL, see `lesim-interval-p'.  For BOPEN and EOPEN, see
 	  (lesim-interval-p string interval)
 	t))))
 
+(defun lesim-mechanism-p (string)
+  "Return non-nil if STRING is a valid mechanism name."
+  (member string lesim-mechanisms))
+
 (defun lesim-default-p (string &optional bopen eopen)
   "Return non-nil if STRING matches default:x, with x a real number.
 For BOPEN and EOPEN, see `lesim-name-p'."
@@ -347,7 +354,10 @@ name-name-scalar, list, dict, or if STRING does not match any of
 these types.  If NODICT is non-nil, the dict type is not checked
 for.  (This is used in `lesim-dict-p' avoid infinite loops.)"
   (cond
-   ;; natnum
+   ;; mechanism:
+   ((lesim-mechanism-p string)
+    'mechanism)
+   ;; natnum:
    ((lesim-natnum-p string)
     'natnum)
    ;; scalar:
@@ -396,14 +406,16 @@ for.  (This is used in `lesim-dict-p' avoid infinite loops.)"
 		      (> (length elts) 0))
 	    (setq elt (concat elt (pop elts)))))
 	(push (lesim-type elt t) typs)))
-    (if (length= typs 1) ; must be scalar or default
+    (if (length= typs 1) ; must be scalar/natnum/default
 	(let ((typ (nth 0 typs)))
 	  (or (equal 'default typ)
 	      (equal 'natnum typ)
 	      (equal 'scalar typ)))
       (setq typs (seq-remove (lambda (x) (equal x 'default)) typs))
       (let ((typ (pop typs)))
-	(seq-every-p (lambda (x) (equal x typ)) typs)))))
+	(if (and (length= typs 0) (equal typ 'name-list))
+	    nil ; name-list does not have default
+	  (seq-every-p (lambda (x) (equal x typ)) typs))))))
 
 (defun lesim-valid-p (value type)
   "Return non-nil if VALUE has type TYPE."
@@ -418,12 +430,12 @@ for.  (This is used in `lesim-dict-p' avoid infinite loops.)"
   "Retrieve a list of WHAT from Learning Simulator code.
 The code is looked for at `lesim-url'.  WHAT can be \"parameters\"
 or \"keywords\"."
-  (if (member what '("parameters" "keywords"))
+  (if (member what '("parameters" "keywords" "mechanism_names"))
       (url-retrieve (concat lesim-url what ".py")
 		    (intern (concat "lesim--parse-" what))
 		    nil
 		    t)
-    (user-error "Cannot retrieve " what)))
+    (user-error "Cannot retrieve %s" what)))
 
 (defun lesim--parse-spec (string)
   "Return the data type described by STRING.
@@ -432,7 +444,8 @@ See `lesim-type' for a list of types."
 	 (specs '(("\\`list of" . list)
 		  ("\\`scalar or" . dict)
 		  ("\\`scalar" . scalar)
-		  ("\\`positive" . natnum))))
+		  ("\\`positive" . natnum)
+		  ("\\`one of" . mechanism))))
     (cdr (assoc string
 		specs
 		#'string-match-p))))
@@ -472,6 +485,16 @@ errors."
     (setq lesim-commands '())
     (while (re-search-forward "'\\(@[[:alpha:]]+\\)'" nil t)
       (push (match-string 1) lesim-commands))))
+
+(defun lesim--parse-mechanism_names (status)
+  "Parse mechanism names in Learning Simulator code.
+This function is called by `lesim--retrieve' in a buffer
+containing mechanism_names.py.  It checks that STATUS does not
+contain errors."
+  (unless (plist-get status :error)
+    (setq lesim-mechanisms '())
+    (while (re-search-forward "'\\([[:alpha:]]+\\)'" nil t)
+      (push (match-string 1) lesim-mechanisms))))
 
 (defun lesim-template ()
   "Insert a bare bones Learning Simulator script template."
@@ -641,16 +664,17 @@ FMT and ARGS are treated like in `message'."
 Match parameter assigments between (point) and LIMIT.  If INVALID
 is nil, matching syntactically invalid assignments, otherwise
 match valid ones."
-  (let* ((rex1 (regexp-opt lesim-parameter-names "\\(?1:"))
-	 (rex2 (concat rex1 "[ \t]*=[ \t]*\\(.+?\\)\\s-*[#\n]")))
-    (when (re-search-forward rex2 limit t)
-      (let* ((para (match-string 1))
-	     (valu (match-string 2))
-	     (type (nth 2 (assoc para lesim-parameters))))
-	(let ((result (save-match-data (lesim-valid-p valu type))))
-	  (if invalid
-	      (not result)
-	    result))))))
+  (when (length> lesim-parameter-names 0)
+    (let* ((rex1 (regexp-opt lesim-parameter-names "\\(?1:"))
+	   (rex2 (concat rex1 "[ \t]*=[ \t]*\\(.+?\\)\\s-*[#\n]")))
+      (when (re-search-forward rex2 limit t)
+	(let* ((para (match-string 1))
+	       (valu (match-string 2))
+	       (type (nth 2 (assoc para lesim-parameters))))
+	  (let ((result (save-match-data (lesim-valid-p valu type))))
+	    (if invalid
+		(not result)
+	      result)))))))
 		      
 ;;; Lesim-Mode definition
 
@@ -665,6 +689,7 @@ match valid ones."
     (lesim-template))
   (lesim--retrieve "parameters")
   (lesim--retrieve "keywords")
+  (lesim--retrieve "mechanism_names")
   ;; keymap:
   (define-key lesim-mode-map lesim-run-key #'lesim-run-and-error)
   (define-key lesim-mode-map lesim-template-key #'lesim-template)
@@ -692,8 +717,7 @@ match valid ones."
                 ;; invalid parameters:
 		((lambda (limit) (lesim--match-parameter limit t)) . (2 lesim-invalid-face))
                 ;; multiline comments:
-		(lesim--match-multiline-comment (0 font-lock-comment-face t))
-		))
+		(lesim--match-multiline-comment (0 font-lock-comment-face t))))
   (setq-local font-lock-defaults '(lesim--keywords nil t)))
 
 ;;;###autoload
