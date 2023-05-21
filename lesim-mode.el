@@ -676,6 +676,30 @@ match valid ones."
 		(not result)
 	      result)))))))
 
+(defun lesim--phase-names ()
+  ""
+  (save-excursion
+    (save-match-data
+      (let (phases)
+	(goto-char (point-min))
+	(while (re-search-forward "@phase\\s-+\\([[:alpha:]_][[:alnum:]_]*\\)" nil t)
+	  (push (match-string 1) phases))
+	phases))))
+		   
+
+(defun lesim--valid-run-wholeline ()
+  ""
+  (let ((fields (split-string (thing-at-point 'line) "," t "[ \t]+"))
+	(phases (lesim--phase-names)))
+    ;; 1st field needs to be split again on whitespace:
+    (setq fields (append (split-string (pop fields)) fields))
+    (when (string= "@run" (pop fields))
+      (if (length= fields 1)
+	  (member (nth 0 fields) phases)
+	(pop fields)
+	(seq-every-p (lambda (x) (member x phases)) fields)))))
+
+
 (defun lesim--match-command (limit &optional invalid)
   ""
   (let (mat val)
@@ -689,18 +713,25 @@ match valid ones."
 	      (setq mat (list beg end beg end))
 	      (setq val t)
 	      (cond
-		 ((string= com "@phase")
-		  (if (re-search-forward "\\=\\s-+[[:alpha:]_][[:alnum:]_()]*[ \t]+stop:[ \t]*.+"
-					 (min (line-end-position) limit)
-					 t)
-		      (setq mat (list beg (match-end 0) beg end))
-		    (setq val nil)))
-		 )
-		 )))))
-    (when (or (and val (not invalid)) (and (not val) invalid))
-      (set-match-data mat)
-      (goto-char (nth 1 mat)))))
-
+	       ((string= com "@phase")
+		;; we check that @phase is followed by a valid name
+		(if (re-search-forward "\\=\\s-+[[:alpha:]_][[:alnum:]_()]*"
+				       (min (line-end-position) limit)
+				       t)
+		    (setq mat (list beg (match-end 0) beg end))
+		  (setq val nil)))
+	       ((string= com "@run")
+		(setq mat (list beg (line-end-position) beg end))
+		(unless (lesim--valid-run-wholeline)
+		  ;;  (setq mat (list beg end beg end))
+		  (setq val nil))
+		)	
+	       )
+	       )))))
+      (when (or (and val (not invalid)) (and (not val) invalid))
+	(set-match-data mat)
+	(goto-char (nth 1 mat)))))
+  
 ;;; Lesim-Mode definition
 
 ;;;###autoload
@@ -730,10 +761,10 @@ match valid ones."
                 ;; eol comments: (2 patterns to avoid ## and ### at bol)
                 ("^\\(#[ \t]+.*\\)$" . (1 font-lock-comment-face))
                 ("[^#]\\(#[ \t]+.*\\)$" . (1 font-lock-comment-face))
-                ;; valid @ commands:
-		(lesim--match-command . (1 font-lock-keyword-face t))
                 ;; invalid @ commands:
-		((lambda (limit) (lesim--match-command limit t)) . (1 lesim-invalid-face t))
+		((lambda (limit) (lesim--match-command limit t)) . (0 lesim-invalid-face))
+                ;; valid @ commands:
+		(lesim--match-command . (1 font-lock-keyword-face))
                 ;; functions:
 		(,(regexp-opt (list "count" "count_line" "count_reset" "choice" "rand") 'words) . font-lock-function-name-face)
 		;; other keywords:
