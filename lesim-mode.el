@@ -678,18 +678,28 @@ match valid ones."
 
 (defun lesim--match-command (limit &optional invalid)
   ""
-  (when (re-search-forward "@[[:alpha:]_]+" limit t)
-    (let* ((com (match-string 0))
-	   (beg (match-beginning 0))
-	   (end (match-end 0))
-	   (mat (list beg end beg end))
-	   (res nil))
-      (if (member com lesim-commands)
-	  (cond
-	   (t
-	    (setq res t))))
+  (let (mat val)
+    (save-excursion
+      (save-match-data
+	(when (re-search-forward "@[[:alpha:]_]+" limit t)
+	  (let* ((com (match-string 0))
+		 (beg (match-beginning 0))
+		 (end (match-end 0)))
+	    (when (member com lesim-commands)
+	      (setq mat (list beg end beg end))
+	      (setq val t)
+	      (cond
+		 ((string= com "@phase")
+		  (if (re-search-forward "\\=\\s-+[[:alpha:]_][[:alnum:]_()]*[ \t]+stop:[ \t]*.+"
+					 (min (line-end-position) limit)
+					 t)
+		      (setq mat (list beg (match-end 0) beg end))
+		    (setq val nil)))
+		 )
+		 )))))
+    (when (or (and val (not invalid)) (and (not val) invalid))
       (set-match-data mat)
-      (if invalid (not res) res))))
+      (goto-char (nth 1 mat)))))
 
 ;;; Lesim-Mode definition
 
@@ -721,9 +731,9 @@ match valid ones."
                 ("^\\(#[ \t]+.*\\)$" . (1 font-lock-comment-face))
                 ("[^#]\\(#[ \t]+.*\\)$" . (1 font-lock-comment-face))
                 ;; valid @ commands:
-		(lesim--match-command . (1 font-lock-keyword-face))
+		(lesim--match-command . (1 font-lock-keyword-face t))
                 ;; invalid @ commands:
-		((lambda (limit) (lesim--match-command limit t)) . (1 lesim-invalid-face))
+		((lambda (limit) (lesim--match-command limit t)) . (1 lesim-invalid-face t))
                 ;; functions:
 		(,(regexp-opt (list "count" "count_line" "count_reset" "choice" "rand") 'words) . font-lock-function-name-face)
 		;; other keywords:
