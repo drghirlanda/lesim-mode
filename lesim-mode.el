@@ -737,6 +737,10 @@ match valid ones."
 ;;;###autoload
 (define-derived-mode lesim-mode prog-mode "Les"
   "Major mode to edit Learning Simulator scripts.
+Features in brief: syntax highlighting and validation as you
+type; run script with \\[lesim-run-and-error]; insert script
+template with \\[lesim-template]].  More details at
+`https://github.com/drghirlanda/lesim'.
 
 \\{lesim-mode-map}"
   :group 'lesim
@@ -777,7 +781,21 @@ match valid ones."
 		((lambda (limit) (lesim--match-parameter limit t)) . (2 lesim-invalid-face))
                 ;; multiline comments:
 		(lesim--match-multiline-comment (0 font-lock-comment-face t))))
-  (setq-local font-lock-defaults '(lesim--keywords nil t)))
+  (setq-local font-lock-defaults '(lesim--keywords nil t))
+  ;; menu
+  (easy-menu-define lesim-menu lesim-mode-map
+    "Menu for Learning Simulator scripts."
+    '("Lesim"
+      ["Run" lesim-run-and-error]
+      ["Template" lesim-template]
+      ["Help" describe-mode]
+      ["Bugs" (lambda () (interactive) (browse-url "https://github.com/drghirlanda/lesim/issues"))]
+      ("Learning Simulator"
+       ["Docs" (lambda () (interactive) (browse-url "https://learningsimulator.readthedocs.io/en/latest/index.html"))]
+       ["Issues" (lambda () (interactive) (browse-url "https://github.com/learningsimulator/issues"))]
+       )
+      ))
+  )
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.les\\'" . lesim-mode))
