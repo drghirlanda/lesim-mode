@@ -43,7 +43,7 @@ This function is bound to \\[lesim-forward-word]"
     (let* ((region (lesim--phase-region-at-point))
            (reg-beg (nth 0 region))
            (reg-end (nth 1 region)))
-      (lesim-validate region)
+;      (lesim-validate region)
       (re-search-forward (concat lesim--name-re
                                  "\\|"
                                  lesim--scalar-re)
@@ -58,7 +58,7 @@ This function is bound to \\[lesim-forward-word]"
 
 This function is bound to \\[lesim-backward-word]"
   (interactive)
-  (lesim-validate (lesim--phase-region-at-point))
+;  (lesim-validate (lesim--phase-region-at-point))
   (re-search-backward (concat "\\b\\("
                               lesim--name-re
                               "\\|"
@@ -122,6 +122,10 @@ template with \\[lesim-template]].  More details at
                 ;; eol comments: (2 patterns to avoid ## and ### at bol)
                 ("^\\(#[ \t]+.*\\)$" . (1 font-lock-comment-face t))
                 ("[^#]\\(#[ \t]+.*\\)$" . (1 font-lock-comment-face t))
+                ;; stimuli:
+                (lesim--match-invalid-phase-stimuli) ; does its own highlighting
+                ;; stimuli:
+                (lesim--match-invalid-behaviors-and-lines) ; does its own highlighting
                 ;; @ commands:
                 (lesim--match-command (1 font-lock-keyword-face nil t) (2 lesim-invalid-face nil t))
                 ;; functions:

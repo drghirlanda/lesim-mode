@@ -1,34 +1,35 @@
-# title:   A simple test script 
+# title:   A test script for lesim-mode 
 # author:  Stefano Ghirlanda
 # date:    2023-05-03 
-# summary: Just to show off lesim-mode
+# summary: Just to show off. Contains errors and won't run.
 
-### 
-Parameter block (multiline comment)
-###
 n_subjects        = 1 # end of line comment 
-mechanism_name    = sr 
+mechanism         = sr
 behaviors         = response, no_response 
 stimulus_elements = background, stimulus, reward 
 start_v           = 0.1
 start_w           = 0.1
 alpha_v           = 0.1
 u                 = reward:10, default:0
+beta              = 1x # invalid value
+
+### 
+Multiline comment
+###
 
 @phase training stop: stimulus==500
-START_TRIAL  stimulus   | response: REWARD(.5) | NO_REWARD
+START_TRIAL  stimulus   | x=2, response: REWARD(.5) | NO_REWARD
 REWARD       reward     | START_TRIAL
-NO_REWARD    background | START_TRIAL
-
+NO_REWARD    background | START_TRIA # misspelled line name
+             
+# these are wrong:
+@run xtraining 
+@run my_run xtraining
+             
 # these are correct:
 @run training
 @run my_run training
 
-# these are wrong:
-@run doesnt_exist
-@run my_run doesnt_exist
-
 @figure v(stimulus->response)
 @subplot 111 {'xlabel':'exposures to stimulus', 'ylabel':'v-value'}
 @vplot stimulus->response
-

@@ -20,9 +20,7 @@
 ;; Function to validate Learning Simulator syntax
 
 (defun lesim--validate-stimuli (region)
-  "Highlight undeclared stimuli in REGION.
-REGION must be a non-nil return value of
-'lesim--phase-region-at-point'."
+  "Highlight undeclared stimuli in REGION."
   (save-excursion
     (let ((reg-beg (nth 0 region))
           (reg-end (nth 1 region))

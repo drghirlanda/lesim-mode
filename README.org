@@ -1,13 +1,15 @@
-#+title: Lesim-Mode: Edit Learning Simulator Scripts in Emacs
+#+title: Lesim-mode: Edit Learning Simulator Scripts in Emacs
 #+author: Stefano Ghirlanda
 #+email: drghirlanda@gmail.com
 #+options: toc:nil ':t
 
-Lesim-Mode is an Emacs major mode to write and run [[https://learningsimulator.org][Learning Simulator]]
+Lesim-mode is an Emacs major mode to write and run [[https://learningsimulator.org][Learning Simulator]]
 scripts. To learn more about the Learning Simulator, see this [[https://joss.theoj.org/papers/10.21105/joss.02891][short
 article]] and the [[https://learningsimulator.readthedocs.io][online documentation]].
 
-Lesim-Mode does not understand the full Learning Simulator
+Lesim-mode helps to ensure that a script is correct by highlighting
+such errors as misspelled keywords, stimulus elements, and erroneous
+syntax. However, it does not understand the full Learning Simulator
 syntax. That is a job for Superman, that is, Learning Simulator chief
 software architect [[https://github.com/markusrobertjonsson][Markus Jonsson]].
 
@@ -25,8 +27,8 @@ put ~lesim-mode.el~ somewhere in your Emacs [[https://www.emacswiki.org/emacs/Lo
 * Using
 
 - Syntax coloring is enabled automatically.
-- Parameter assignments are validated automatically and highlighted to
-  reflect if they are correct and incorrect.
+- Parameter assignments and other constructs are validated
+  automatically and highlighted to reflect if they are correct or not.
 - ~C-c C-c~ runs the script in the Learning Simulator, highlighting
   any errors.
 - ~TAB~ and ~Shift-TAB~ in move between fields in phase blocks, and by

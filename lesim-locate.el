@@ -20,44 +20,47 @@
 (defun lesim--value-of (this)
   "Scan buffer for a definition of THIS.
 If found, split on \",\" and return as list."
-  (save-mark-and-excursion
+  (save-excursion
+    (save-match-data
     (goto-char (point-min))
     (let ((this-re (concat "^\s*" this "\s*[:=]\s*\\(.+\\)")))
       (when (re-search-forward this-re nil t)
-        (split-string (match-string 1) "," t "\s*")))))
+        (split-string (match-string 1) "," t "\s*"))))))
 
 (defun lesim--phase-region-at-point ()
   "Return beginning and end char of @phase block at point.
 Return nil if point is not in a @phase block."
   (save-excursion
-    (let ((search-beg (point))
-          (case-fold-search t))
-      ;; can we find @phase backwards?
-      (when (re-search-backward "^\\s-*@phase" nil t)
-        (let ((phase-beg (match-beginning 0))
-	      (phase-end nil))
-          (forward-line) ; skip @phase line
-          ;; move forward while we get phase lines:
-          (while (looking-at "^#\\|\\s-+\\|\\(\\s-*[[:alpha:]_].+?|\\)")
-	    (when (match-string 1)
-	      (setq phase-end (line-end-position)))
-            (forward-line))
-          (when (>= phase-end search-beg)
-            (list phase-beg phase-end)))))))
+    (save-match-data
+      (let ((search-beg (point))
+            (case-fold-search t))
+	;; can we find @phase backwards?
+	(when (re-search-backward "^\\s-*@phase" nil t)
+          (let ((phase-beg (match-beginning 0))
+		(phase-end nil))
+            (forward-line) ; skip @phase line
+            ;; move forward while we get phase lines:
+            (while (looking-at "^#\\|\\s-+\\|\\(\\s-*[[:alpha:]_].+?|\\)")
+	      (when (match-string 1)
+		(setq phase-end (line-end-position)))
+              (forward-line))
+            (when (>= phase-end search-beg)
+              (list phase-beg phase-end))))))))
 
 (defun lesim--phase-lines (region)
   "Return list of phase line names within REGION."
-  (save-excursion
-    (let ((reg-beg (nth 0 region))
-          (reg-end (nth 1 region))
-          (lines (list))
-          (line-re (concat "^\\s-*\\(" lesim--name-re "\\)\\s-")))
-      (goto-char reg-beg)
-      (while (re-search-forward line-re reg-end t)
-        (let ((line (match-string 1))
-              (line-beg (match-beginning 1)))
-          (push line lines)))
-      lines)))
+  (when region
+    (save-excursion
+      (let ((reg-beg (nth 0 region))
+            (reg-end (nth 1 region))
+            (lines (list))
+            (line-re (concat "^\\s-*\\(" lesim--name-re "\\)\\s-")))
+	(goto-char reg-beg)
+	(while (re-search-forward line-re reg-end t)
+          (let ((line (match-string 1))
+		(line-beg (match-beginning 1)))
+            (push line lines)))
+	lines))))
 
 (defun lesim--phase-names ()
   "Return list of phase names in a Learning Simulator script."

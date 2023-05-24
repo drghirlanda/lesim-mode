@@ -122,11 +122,56 @@
       (set-match-data mat)
       (goto-char (nth 1 mat)))))
 
+(defun lesim--match-invalid-phase-stimuli (limit)
+  "Highlight undeclared stimuli within LIMIT."
+  (let ((line-re (concat "^\\s-*" lesim--name-re "\\s-+\\(.+?\\)\\s-*|"))
+	(elem-re (concat "\\(" lesim--name-re "\\)\\[?[0-9.]*\\]?"))
+	(line-beg (point)))
+    (when (re-search-forward line-re limit t)
+      (goto-char (match-beginning 1))
+      (let ((line-end (line-end-position))
+	    (stim-end (match-end 1))
+	    (stimuli (lesim--value-of "stimulus_elements")))
+	(while (re-search-forward elem-re stim-end t)
+          (let ((elem (match-string 1))
+                (elem-beg (match-beginning 1))
+                (elem-end (match-end 1)))
+            (unless (member elem stimuli)
+	      (put-text-property elem-beg elem-end 'face lesim-invalid-face))))
+	(set-match-data (list line-beg line-end))
+	(goto-char line-end)))))
+
+(defun lesim--match-invalid-behaviors-and-lines (limit)
+  "Highlight undeclared behaviors and line names."
+    (when (re-search-forward "|\\s-*\\(.+?\\)\\s-*\\([|#\n]\\)" limit t)
+      (let ((field-beg (match-beginning 1))
+	    (field-end (match-end 1))
+	    (lines nil) ; set later, we might be too far now
+	    (behaviors (lesim--value-of "behaviors")))
+	(goto-char field-beg) ; also ensures we are in a phase
+	(setq lines (lesim--phase-lines (lesim--phase-region-at-point)))
+	(while (re-search-forward "\\s-*\\([^(,:]+\\)\\s-*\\([().:,0-9]*\\)" field-end t)
+	  (let ((invalid nil)
+		(bit (match-string 1))
+		(del (match-string 2)))
+	    (if (string= del ":")
+		(unless (member bit behaviors)
+		  (setq invalid t))
+	      (if (not (string-match-p "=" bit))
+		  (unless (member bit lines)
+		    (setq invalid t))))
+	    (when invalid
+	      (put-text-property (match-beginning 1) (match-end 1) 'face lesim-invalid-face))))
+	(set-match-data (list field-beg field-end))
+	(goto-char field-end))))
+
 (defun lesim-highlight ()
   "Highlight a `lesim-mode' buffer."
   (interactive)
-  (font-lock-flush)
-  (font-lock-ensure))
+  (let ((beg (or (region-beginning) (point-min)))
+	(end (or (region-end) (point-max))))
+    (font-lock-flush beg end)
+    (font-lock-ensure beg end)))
 
 (provide 'lesim-highlight)
 ;;; lesim-highlight.el ends here
