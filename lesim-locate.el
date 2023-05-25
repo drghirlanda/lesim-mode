@@ -21,6 +21,8 @@
 
 ;;; Code:
 
+(require 'lesim-type)
+
 (defun lesim--value-of (this)
   "Scan buffer for a definition of THIS.
 If found, split on \",\" and return as list."
@@ -61,9 +63,7 @@ Return nil if point is not in a @phase block."
             (line-re (concat "^\\s-*\\(" lesim--name-re "\\)\\s-")))
 	(goto-char reg-beg)
 	(while (re-search-forward line-re reg-end t)
-          (let ((line (match-string 1))
-		(line-beg (match-beginning 1)))
-            (push line lines)))
+          (push (match-string 1) lines))
 	lines))))
 
 (defun lesim--phase-names ()

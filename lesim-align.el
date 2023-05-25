@@ -21,6 +21,9 @@
 
 ;;; Code:
 
+(require 'lesim-type)
+(require 'lesim-locate)
+
 (defun lesim--align-phase ()
   "Align phase block at point.
 If point is not in a phase block, do nothing."

@@ -7,5 +7,6 @@
   '(("Stefano Ghirlanda" . "drghirlanda@gmail.com"))
   :keywords
   '("languages" "faces")
-  :url "https://github.com/drghirlanda/lesim-mode")
+  :url
+  "https://github.com/drghirlanda/lesim-mode")
 

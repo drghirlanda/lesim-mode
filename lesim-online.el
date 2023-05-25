@@ -113,7 +113,7 @@ errors."
   (let ((count 0))
     (while (and (length= lesim-parameter-names 0) (< count 10))
       (sleep-for 1)
-      (1+ count)))
+      (setq count (1+ count))))
   (unless (plist-get status :error)
     ;; remap parameter names if necessary:
     (dolist (p lesim-parameter-names)

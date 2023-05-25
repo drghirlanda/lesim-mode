@@ -21,17 +21,15 @@
 
 ;;; Code:
 
+(require 'lesim-online)
+
 (defvar font-lock-beg) ; avoid byte-compile warnings
 (defvar font-lock-end)
 
 (defun lesim--extend-region ()
   "Mark multiline comments."
   ;; count ### before start to see if we are in a comment:
-  (let ((count 0)
-	(start (point))
-        beg
-        end
-	)
+  (let (beg end)
     (when (search-backward "###" nil t)
       (setq beg (match-beginning 0)))
     (when (search-forward "###" nil t)
@@ -46,10 +44,7 @@
 
 (defun lesim--match-multiline-comment (limit)
   "Highlight multiline comment between point and LIMIT."
-  (let (beg
-	end
-	(count 0)
-	(start (point)))
+  (let (beg end)
     (save-excursion
       (save-match-data
 	(when (search-forward "###" limit t)

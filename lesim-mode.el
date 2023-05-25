@@ -92,7 +92,7 @@ This function is bound to \\[lesim-backward-word]"
 Features in brief: syntax highlighting and validation as you
 type; run script with \\[lesim-run-and-error]; insert script
 template with \\[lesim-template]].  More details at
-`https://github.com/drghirlanda/lesim'.
+URL `https://github.com/drghirlanda/lesim'.
 
 \\{lesim-mode-map}"
   :group 'lesim
