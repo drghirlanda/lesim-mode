@@ -25,6 +25,8 @@
 
 (defvar font-lock-beg) ; avoid byte-compile warnings
 (defvar font-lock-end)
+(defvar lesim--behaviors)
+(defvar lesim--stimuli)
 
 (defun lesim--extend-region ()
   "Mark multiline comments."
@@ -71,7 +73,13 @@
 		     (beg (match-beginning 2))
 		     (end (match-end 2)))
 		(if (lesim-valid-p valu type)
-		    (setq mat (list beg end beg end 0 0))
+		    (progn
+		      (cond
+		       ((string= para "behaviors")
+			(setq lesim--behaviors (split-string valu "," t "\\s-*")))
+		       ((string= para "stimulus_elements")
+			(setq lesim--stimuli (split-string valu "," t "\\s-*"))))
+		      (setq mat (list beg end beg end 0 0)))
 		  (setq mat (list beg end 0 0 beg end)))))))))
     (when mat
       (set-match-data mat)
@@ -127,13 +135,12 @@
     (when (re-search-forward line-re limit t)
       (goto-char (match-beginning 1))
       (let ((line-end (line-end-position))
-	    (stim-end (match-end 1))
-	    (stimuli (lesim--value-of "stimulus_elements")))
+	    (stim-end (match-end 1)))
 	(while (re-search-forward elem-re stim-end t)
           (let ((elem (match-string 1))
                 (elem-beg (match-beginning 1))
                 (elem-end (match-end 1)))
-            (unless (member elem stimuli)
+            (unless (member elem lesim--stimuli)
 	      (put-text-property elem-beg elem-end 'face font-lock-warning-face))))
 	(set-match-data (list line-beg line-end))
 	(goto-char line-end)))))
@@ -143,8 +150,7 @@
     (when (re-search-forward "|\\s-*\\(.+?\\)\\s-*\\([|#\n]\\)" limit t)
       (let ((field-beg (match-beginning 1))
 	    (field-end (match-end 1))
-	    (lines nil) ; set later, we might be too far now
-	    (behaviors (lesim--value-of "behaviors")))
+	    (lines nil)) ; set later, we might be too far now
 	(goto-char field-beg) ; also ensures we are in a phase
 	(setq lines (lesim--phase-lines (lesim--phase-region-at-point)))
 	(while (re-search-forward "\\s-*\\([^(,:]+\\)\\s-*\\([().:,0-9]*\\)" field-end t)
@@ -152,7 +158,7 @@
 		(bit (match-string 1))
 		(del (match-string 2)))
 	    (if (string= del ":")
-		(unless (member bit behaviors)
+		(unless (member bit lesim--behaviors)
 		  (setq invalid t))
 	      (if (not (string-match-p "=" bit))
 		  (unless (member bit lines)

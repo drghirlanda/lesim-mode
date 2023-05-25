@@ -29,9 +29,9 @@ If found, split on \",\" and return as list."
   (save-excursion
     (save-match-data
     (goto-char (point-min))
-    (let ((this-re (concat "^\s*" this "\s*[:=]\s*\\(.+\\)")))
+    (let ((this-re (concat "^\\s-*" this "\\s-*[:=]\\s-*\\(.+\\)")))
       (when (re-search-forward this-re nil t)
-        (split-string (match-string 1) "," t "\s*"))))))
+        (split-string (match-string 1) "," t "\\s-*"))))))
 
 (defun lesim--phase-region-at-point ()
   "Return beginning and end char of @phase block at point.

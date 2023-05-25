@@ -102,6 +102,8 @@ URL `https://github.com/drghirlanda/lesim'.
   (lesim--retrieve "parameters")
   (lesim--retrieve "keywords")
   (lesim--retrieve "mechanism_names")
+  (setq-local lesim--stimuli (lesim--value-of "stimulus_elements"))
+  (setq-local lesim--behaviors (lesim--value-of "behaviors"))
   ;; keymap:
   (define-key lesim-mode-map lesim-run-key #'lesim-run-and-error)
   (define-key lesim-mode-map lesim-template-key #'lesim-template)
