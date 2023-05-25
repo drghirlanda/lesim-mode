@@ -139,7 +139,7 @@
                 (elem-beg (match-beginning 1))
                 (elem-end (match-end 1)))
             (unless (member elem stimuli)
-	      (put-text-property elem-beg elem-end 'face lesim-invalid-face))))
+	      (put-text-property elem-beg elem-end 'face font-lock-warning-face))))
 	(set-match-data (list line-beg line-end))
 	(goto-char line-end)))))
 
@@ -163,7 +163,7 @@
 		  (unless (member bit lines)
 		    (setq invalid t))))
 	    (when invalid
-	      (put-text-property (match-beginning 1) (match-end 1) 'face lesim-invalid-face))))
+	      (put-text-property (match-beginning 1) (match-end 1) 'face font-lock-warning-face))))
 	(set-match-data (list field-beg field-end))
 	(goto-char field-end))))
 

@@ -50,15 +50,5 @@
   :type 'boolean
   :group 'lesim)
 
-(defcustom lesim-invalid-face '(:foreground "red")
-  "Face to display invalid construcs."
-  :type 'face
-  :group 'lesim)
-
-(defcustom lesim-parameter-face font-lock-type-face
-  "Face to display parameters."
-  :type 'face
-  :group 'lesim)
-
 (provide 'lesim-custom)
 ;;; lesim-custom.el ends here

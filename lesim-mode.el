@@ -124,7 +124,7 @@ template with \\[lesim-template]].  More details at
                 ;; stimuli:
                 (lesim--match-invalid-behaviors-and-lines) ; does its own highlighting
                 ;; @ commands:
-                (lesim--match-command (1 font-lock-keyword-face nil t) (2 lesim-invalid-face nil t))
+                (lesim--match-command (1 font-lock-keyword-face nil t) (2 font-lock-warning-face nil t))
                 ;; functions:
                 (,(regexp-opt (list "count" "count_line" "count_reset" "choice" "rand") 'words) . font-lock-function-name-face)
                 ;; other keywords:
@@ -132,7 +132,7 @@ template with \\[lesim-template]].  More details at
                 ;; phase line names:
                 ("^\\s-*\\([[:alpha:]_][[:alnum:]_]+\\)\s+.*?|" . (1 font-lock-constant-face t))
                 ;; parameter assignments:
-                (lesim--match-parameter  (1 lesim-parameter-face nil t) (2 lesim-invalid-face nil t))
+                (lesim--match-parameter  (1 font-lock-type-face nil t) (2 font-lock-warning-face nil t))
                 ;; multiline comments:
                 (lesim--match-multiline-comment (0 font-lock-comment-face t))))
   (setq-local font-lock-defaults '(lesim--font-lock-keywords nil t))
