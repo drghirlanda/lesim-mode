@@ -1,4 +1,4 @@
-;;; lesim-mode.el --- Major mode for Learning Simulator scripts -*- lexical-binding: t; -*-
+;;; lesim-highlight.el --- Font-lock functions for lesim-mode -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2023 Stefano Ghirlanda
 
@@ -17,7 +17,9 @@
 
 ;;; Commentary:
 
-;; Functions for syntax highlighting
+;; Font-lock functions for lesim-mode
+
+;;; Code:
 
 (defvar font-lock-beg) ; avoid byte-compile warnings
 (defvar font-lock-end)
@@ -168,8 +170,10 @@
 (defun lesim-highlight ()
   "Highlight a `lesim-mode' buffer."
   (interactive)
-  (let ((beg (or (region-beginning) (point-min)))
-	(end (or (region-end) (point-max))))
+  (let (beg end)
+    (if (region-active-p)
+	(setq beg (region-beginning) end (region-end))
+      (setq beg (point-min) end (point-max)))
     (font-lock-flush beg end)
     (font-lock-ensure beg end)))
 

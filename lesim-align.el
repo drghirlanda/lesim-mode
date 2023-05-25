@@ -1,4 +1,4 @@
-;;; lesim-mode.el --- Major mode for Learning Simulator scripts -*- lexical-binding: t; -*-
+;;; lesim-align.el --- Functions to align lesim buffers -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2023 Stefano Ghirlanda
 
@@ -17,7 +17,9 @@
 
 ;;; Commentary:
 
+;; Functions to align lesim buffers.
 
+;;; Code:
 
 (defun lesim--align-phase ()
   "Align phase block at point.
@@ -35,7 +37,7 @@ If point is not in a phase block, do nothing."
             (replace-match "| "))
           (message "")
           ;; align line id and stimulus:
-          (align-regexp beg end "\\(\\s-*\\)\\s-" 1 1 nil)
+          (align-regexp beg end "\\(\\s-+\\)\\s-" 1 1 nil)
           ;; align | clauses:
           (align-regexp beg end "\\(\\s-*\\)|" 1 1 t))))))
           ;; align comments

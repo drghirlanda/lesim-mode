@@ -28,10 +28,9 @@
 (require 'lesim-online)    ; retrieve info from github
 (require 'lesim-locate)    ; locate script elements
 (require 'lesim-align)     ; alignment 
-(require 'lesim-validate)  ; validating syntax
 (require 'lesim-run)       ; running scripts
 (require 'lesim-highlight) ; font-lock functions
-(require 'lesim-custom)
+(require 'lesim-custom)    ; customization
 
 (defun lesim-forward-word ()
   "Move forward by field or word.
@@ -43,7 +42,6 @@ This function is bound to \\[lesim-forward-word]"
     (let* ((region (lesim--phase-region-at-point))
            (reg-beg (nth 0 region))
            (reg-end (nth 1 region)))
-;      (lesim-validate region)
       (re-search-forward (concat lesim--name-re
                                  "\\|"
                                  lesim--scalar-re)
@@ -58,7 +56,6 @@ This function is bound to \\[lesim-forward-word]"
 
 This function is bound to \\[lesim-backward-word]"
   (interactive)
-;  (lesim-validate (lesim--phase-region-at-point))
   (re-search-backward (concat "\\b\\("
                               lesim--name-re
                               "\\|"

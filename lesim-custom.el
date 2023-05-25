@@ -1,4 +1,4 @@
-;;; lesim-mode.el --- Major mode for Learning Simulator scripts -*- lexical-binding: t; -*-
+;;; lesim-custom.el --- Customizations for lesim-mode -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2023 Stefano Ghirlanda
 
@@ -17,7 +17,9 @@
 
 ;;; Commentary:
 
-;;; Customization
+;; Customizations for lesim-mode
+
+;;; Code:
 
 (defgroup lesim nil
   "Customization options for Lesim-Mode."

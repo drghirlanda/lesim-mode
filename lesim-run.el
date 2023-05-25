@@ -1,4 +1,4 @@
-;;; lesim-mode.el --- Major mode for Learning Simulator scripts -*- lexical-binding: t; -*-
+;;; lesim-run.el --- Functions to run Learning Simulator scripts -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2023 Stefano Ghirlanda
 
@@ -16,6 +16,10 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
+;; Functions to run Learning Simulator scripts
+
+;;; Code:
 
 (defun lesim-find-error (error-list)
   "Locate the error string at the cdr of ERROR-LIST.

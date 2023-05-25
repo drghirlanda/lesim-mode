@@ -1,4 +1,4 @@
-;;; lesim-mode.el --- Major mode for Learning Simulator scripts -*- lexical-binding: t; -*-
+;;; lesim-locate.el --- Functions to locate Learning Simulator constructs -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2023 Stefano Ghirlanda
 
@@ -16,6 +16,10 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
+
+;; Functions to locate Learning Simulator constructs
+
+;;; Code:
 
 (defun lesim--value-of (this)
   "Scan buffer for a definition of THIS.

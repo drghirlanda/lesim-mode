@@ -26,14 +26,10 @@
 ;; Functions to retrieve and parse parameter specs from the Learning
 ;; Simulator repository.
 
-;; Now we def vars and funs to retrieve lesim parametrs and keywords
-;; from github to keep syntax highlighting and abbrev-table up to
-;; date. The only information that may need updating is what entry
-;; separates parameters from other keywords in parameters.py. As of
-;; 2023-05-16, this is kw.TITLE. This matters for lesim-template,
-;; which uses the list of paramaters.
-
-
+;; The only information that may need updating is what entry separates
+;; parameters from other keywords in parameters.py. As of 2023-05-16,
+;; this is kw.TITLE. This matters for lesim-template, which uses the
+;; list of paramaters.
 
 ;;; Code:
 

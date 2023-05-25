@@ -13,7 +13,7 @@ alpha_v           = 0.1
 u                 = reward:10, default:0
 beta              = 1x # invalid value
 
-### 
+###
 Multiline comment
 ###
 
@@ -21,7 +21,7 @@ Multiline comment
 START_TRIAL  stimulus   | x=2, response: REWARD(.5) | NO_REWARD
 REWARD       reward     | START_TRIAL
 NO_REWARD    background | START_TRIA # misspelled line name
-             
+                 
 # these are wrong:
 @run xtraining 
 @run my_run xtraining
