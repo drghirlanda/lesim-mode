@@ -8,12 +8,18 @@ scripts. To learn more about the Learning Simulator, see this [[https://joss.the
 article]] and the [[https://learningsimulator.readthedocs.io][online documentation]].
 
 Lesim-mode helps to ensure that a script is correct by highlighting
-such errors as misspelled keywords, stimulus elements, and erroneous
-syntax. However, it does not understand the full Learning Simulator
+common syntax errors and typos, like misspelled keywords and stimulus
+elements. However, it does not understand the full Learning Simulator
 syntax. That is a job for Superman, that is, Learning Simulator chief
 software architect [[https://github.com/markusrobertjonsson][Markus Jonsson]].
 
-#+attr_org: :width 600
+You can run Learning Simulator scripts directly from lesim-mode
+buffers. Errors are reported in the minibuffer and highlighted in the
+script buffer.
+
+For integration with org-mode, see [[https://githb.com/drghirlanda/ob-lesim][ob-lesim mode]].
+
+#+attr_org: :width 1500
 #+attr_latex: :width .5\textwidth :center t
 #+caption: Sample screenshot
 [[file:./lesim-mode.png]]
@@ -21,20 +27,19 @@ software architect [[https://github.com/markusrobertjonsson][Markus Jonsson]].
 * Installing
 
 Install from here for now, hopefully from MELPA later. It's enough to
-put ~lesim-mode.el~ somewhere in your Emacs [[https://www.emacswiki.org/emacs/LoadPath][load path]] and then
-~(require 'lesim-mode)~ in your ~.emacs.d/init.el~.
+add the lesim-mode directory to your Emacs [[https://www.emacswiki.org/emacs/LoadPath][load path]] and ~(require
+'lesim-mode)~ in your ~.emacs.d/init.el~.
 
 * Using
 
-- Syntax coloring is enabled automatically.
+- Syntax highlighting is enabled automatically.
 - Parameter assignments and other constructs are validated
   automatically and highlighted to reflect if they are correct or not.
 - ~C-c C-c~ runs the script in the Learning Simulator, highlighting
   any errors.
 - ~TAB~ and ~Shift-TAB~ in move between fields in phase blocks, and by
   word elsewhere. They also align phase blocks as ~|~ signs and
-  parameter blocks at ~=~ signs. In phase blocks, they also highlight
-  misspelled stimuli, behaviors, and phase line names.
+  parameter blocks at ~=~ signs.
 - ~C-c C-t~ inserts a template script (see [[Configuration]]).
 
 * Configuration
