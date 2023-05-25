@@ -29,10 +29,7 @@ Return a list with beginning and end points."
         (re-search-backward "#\\+begin_src\\s-+lesim")
       (goto-char (point-min)))
     (search-forward (nth 2 error-list))
-    (beginning-of-line)
-    (let ((beg (point)))
-      (end-of-line)
-      (list beg (point)))))
+    (list (line-beginning-position) (line-end-position))))
     
 (defun lesim-error (error-list)
   "Highlight lesim error in current buffer.
@@ -43,7 +40,7 @@ nil (no error running the script), remove error highlights."
     (let* ((regn (lesim-find-error error-list))
            (mess (nth 1 error-list))
            (ovrl (make-overlay (nth 0 regn) (nth 1 regn))))
-      (overlay-put ovrl 'face lesim-invalid-face)
+      (overlay-put ovrl 'face font-lock-warning-face)
       (overlay-put ovrl 'id 'lesim--invalid)
       (overlay-put ovrl 'help-echo mess)
       (goto-char (nth 0 regn))
@@ -53,8 +50,10 @@ nil (no error running the script), remove error highlights."
 (defun lesim-run (script-file)
   "Run Learning Simulator on file SCRIPT-FILE."
   (interactive)
+  (message "Running script...")
   (let* ((script-command (concat lesim-command " " script-file))
          (script-output (shell-command-to-string script-command)))
+    (message "")
     (when (string-match "Error on line \\([0-9]+\\): \\(.+\\)"
                         script-output)
       (let ((line (string-to-number (match-string 1 script-output)))
