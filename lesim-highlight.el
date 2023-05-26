@@ -25,6 +25,7 @@
 
 (defvar font-lock-beg) ; avoid byte-compile warnings
 (defvar font-lock-end)
+
 (defvar lesim--behaviors)
 (defvar lesim--stimuli)
 

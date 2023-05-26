@@ -1,7 +1,10 @@
-#+title: Lesim-mode: Edit Learning Simulator Scripts in Emacs
+#+title: Lesim-mode: Edit Learning Simulator scripts in Emacs
 #+author: Stefano Ghirlanda
 #+email: drghirlanda@gmail.com
 #+options: toc:nil ':t
+#+latex_header: \usepackage[margin=1in]{geometry}
+#+latex_header: \hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+#+latex_header: \setlength{\parindent}{0pt} \setlength{\parskip}{1ex}
 
 Lesim-mode is an Emacs major mode to write and run [[https://learningsimulator.org][Learning Simulator]]
 scripts. To learn more about the Learning Simulator, see this [[https://joss.theoj.org/papers/10.21105/joss.02891][short
@@ -9,9 +12,7 @@ article]] and the [[https://learningsimulator.readthedocs.io][online documentati
 
 Lesim-mode helps to ensure that a script is correct by highlighting
 common syntax errors and typos, like misspelled keywords and stimulus
-elements. However, it does not understand the full Learning Simulator
-syntax. That is a job for Superman, that is, Learning Simulator chief
-software architect [[https://github.com/markusrobertjonsson][Markus Jonsson]].
+elements.[fn:markus]
 
 You can run Learning Simulator scripts directly from lesim-mode
 buffers. Errors are reported in the minibuffer and highlighted in the
@@ -19,39 +20,53 @@ script buffer.
 
 For integration with org-mode, see [[https://githb.com/drghirlanda/ob-lesim][ob-lesim mode]].
 
+[fn:markus] However, lesim-mode does not understand the full Learning
+Simulator syntax. That is a job for Superman, that is, Learning
+Simulator chief software architect [[https://github.com/markusrobertjonsson][Markus Jonsson]].
+
+
 #+attr_org: :width 1500
-#+attr_latex: :width .5\textwidth :center t
+#+attr_latex: :width .5\textwidth :center t :float figure
 #+caption: Sample screenshot
 [[file:./lesim-mode.png]]
 
 * Installing
 
-Install from here for now, hopefully from MELPA later. It's enough to
-add the lesim-mode directory to your Emacs [[https://www.emacswiki.org/emacs/LoadPath][load path]] and ~(require
-'lesim-mode)~ in your ~.emacs.d/init.el~.
+Install from here for now, hopefully from MELPA later.
+
+Open the lesim-mode directory in Emacs and do ~M-x
+package-install-from-buffer~.
+
+Add ~(require 'lesim-mode)~ to your Emacs init file (most often,
+~.emacs.d/init.el~).
 
 * Using
 
-- Syntax highlighting is enabled automatically.
-- Parameter assignments and other constructs are validated
-  automatically and highlighted to reflect if they are correct or not.
-- ~C-c C-c~ runs the script in the Learning Simulator, highlighting
-  any errors.
-- ~TAB~ and ~Shift-TAB~ in move between fields in phase blocks, and by
-  word elsewhere. They also align phase blocks as ~|~ signs and
-  parameter blocks at ~=~ signs.
-- ~C-c C-t~ inserts a template script (see [[Configuration]]).
+Syntax highlighting is enabled automatically.
 
+Parameter assignments and other constructs are highlighted if
+incorrect. (Not 100% comprehensive yet.)
+
+~C-c C-c~ runs the script in the Learning Simulator, highlighting
+errors in the buffer.
+
+~TAB~ and ~Shift-TAB~ in move between fields in phase blocks, and by
+word elsewhere. They also align phase blocks at ~|~ signs and
+parameter blocks at ~=~ signs.
+
+~C-c C-t~ inserts a template script (see [[Configuration]]).
+
+~C-c C-h~ re-highlights the whole script, case something looks funny.
+  
 * Configuration
 
 Using ~M-x customize-group lesim~ you can configure:
-- The command used to run the Learning Simulator (default:
-  ~lesim.py~).
+- The command used to run the Learning Simulator (default: ~lesim.py~).
 - The key binding to run scripts.
-- The key binding to align code.
 - The key binding to insert a template script.
-- Whether to insert a template script automatically upon opening an
-  empty ~.les~ file (default: ~nil~).
+- The key binding to re-highlight the buffer.
+- Whether to insert a template script when opening an empty ~.les~
+  file (default: ~nil~).
 
 * Bugs and planned features
 

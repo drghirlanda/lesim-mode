@@ -14,13 +14,12 @@ u                 = reward:10, default:0
 beta              = 1x # invalid value
 
 ###
-Multiline comment
+Highlighted typos in @phase blocks:
 ###
-
 @phase training stop: stimulus==500
-START_TRIAL  stimulus   | x=2, response: REWARD(.5) | NO_REWARD
-REWARD       reward     | START_TRIAL
-NO_REWARD    background | START_TRIA # misspelled line name
+START_TRIAL  stimulus,background | reponse: REWARD(.5) | NO_REWARD
+REWARD       rewar      | START_TRIAL
+NO_REWARD    background | START_TRIA
                  
 # these are wrong:
 @run xtraining 
