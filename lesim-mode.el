@@ -27,7 +27,7 @@
 (require 'lesim-type)      ; type predicates
 (require 'lesim-online)    ; retrieve info from github
 (require 'lesim-locate)    ; locate script elements
-(require 'lesim-align)     ; alignment 
+(require 'lesim-align)     ; alignment
 (require 'lesim-run)       ; running scripts
 (require 'lesim-highlight) ; font-lock functions
 (require 'lesim-custom)    ; customization

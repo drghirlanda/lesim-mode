@@ -27,8 +27,8 @@
 ;; Simulator repository.
 
 ;; The only information that may need updating is what entry separates
-;; parameters from other keywords in parameters.py. As of 2023-05-16,
-;; this is kw.TITLE. This matters for lesim-template, which uses the
+;; parameters from other keywords in parameters.py.  As of 2023-05-16,
+;; this is kw.TITLE.  This matters for lesim-template, which uses the
 ;; list of paramaters.
 
 ;;; Code:

@@ -60,7 +60,7 @@
       end)))
 
 (defun lesim--match-parameter (limit)
-  "Font-lock matcher for Learning Simulator parameters."
+  "Highlight parameters between point and LIMIT."
   (let (mat)
     (save-excursion
       (save-match-data
@@ -147,7 +147,8 @@
 	(goto-char line-end)))))
 
 (defun lesim--match-invalid-behaviors-and-lines (limit)
-  "Highlight undeclared behaviors and line names."
+  "Highlight undeclared behaviors and line names.
+Checks between (point) and LIMIT."
     (when (re-search-forward "|\\s-*\\(.+?\\)\\s-*\\([|#\n]\\)" limit t)
       (let ((field-beg (match-beginning 1))
 	    (field-end (match-end 1))
