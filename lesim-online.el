@@ -129,7 +129,10 @@ errors."
     ;; get command names:
     (setq lesim-commands '())
     (while (re-search-forward "'\\(@[[:alpha:]]+\\)'" nil t)
-      (push (match-string 1) lesim-commands))))
+      (push (match-string 1) lesim-commands))
+    ;; work around missing @omit_learn in keywords.py:
+    (push "@omit_learn" lesim-commands)))
+
 
 (defun lesim--parse-mechanism_names (status)
   "Parse mechanism names in Learning Simulator code.

@@ -162,7 +162,7 @@ Checks between (point) and LIMIT."
 	    (if (string= del ":")
 		(unless (member bit lesim--behaviors)
 		  (setq invalid t))
-	      (if (not (string-match-p "=" bit))
+	      (if (and (not (string= "@omit_learn" bit)) (not (string-match-p "=" bit)))
 		  (unless (member bit lines)
 		    (setq invalid t))))
 	    (when invalid
