@@ -84,6 +84,9 @@ This function is bound to \\[lesim-backward-word]"
     (goto-char (point-min))
     (end-of-line)))
 
+(defvar lesim--stimuli)
+(defvar lesim--behaviors)
+
 ;;; Lesim-Mode definition
 
 ;;;###autoload
@@ -99,11 +102,11 @@ URL `https://github.com/drghirlanda/lesim'.
   ;; insert template if configured and buffer is empty:
   (when (and lesim-template-auto (not (buffer-size)))
     (lesim-template))
+  (setq-local lesim--stimuli (lesim--value-of "stimulus_elements"))
+  (setq-local lesim--behaviors (lesim--value-of "behaviors"))
   (lesim--retrieve "parameters")
   (lesim--retrieve "keywords")
   (lesim--retrieve "mechanism_names")
-  (setq-local lesim--stimuli (lesim--value-of "stimulus_elements"))
-  (setq-local lesim--behaviors (lesim--value-of "behaviors"))
   ;; keymap:
   (define-key lesim-mode-map lesim-run-key #'lesim-run-and-error)
   (define-key lesim-mode-map lesim-template-key #'lesim-template)
@@ -121,10 +124,9 @@ URL `https://github.com/drghirlanda/lesim'.
                 ;; eol comments: (2 patterns to avoid ## and ### at bol)
                 ("^\\(#[ \t]+.*\\)$" . (1 font-lock-comment-face t))
                 ("[^#]\\(#[ \t]+.*\\)$" . (1 font-lock-comment-face t))
-                ;; stimuli:
-                (lesim--match-invalid-phase-stimuli) ; does its own highlighting
-                ;; stimuli:
-                (lesim--match-invalid-behaviors-and-lines) ; does its own highlighting
+                ;; phase elements: (do their own highlighting)
+                (lesim--match-invalid-behaviors-and-lines)
+                (lesim--match-invalid-phase-stimuli)
                 ;; @ commands:
                 (lesim--match-command (1 font-lock-keyword-face nil t) (2 font-lock-warning-face nil t))
                 ;; functions:
