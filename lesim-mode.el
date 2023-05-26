@@ -116,7 +116,7 @@ URL `https://github.com/drghirlanda/lesim'.
   (setq-local comment-start "#")
   (setq-local comment-end "")
   ;; search-based highlighting:
-  (setq-local font-lock-support-mode nil)
+  (setq-local font-lock-support-mode nil) ; helps with multiline
   (setq-local font-lock-multiline t)
 ;  (add-to-list 'font-lock-extend-region-functions #'lesim--extend-region)
   (setq-local lesim--font-lock-keywords
