@@ -46,7 +46,7 @@ Return nil if point is not in a @phase block."
 		(phase-end nil))
             (forward-line) ; skip @phase line
             ;; move forward while we get phase lines:
-            (while (looking-at "^#\\|\\s-+\\|\\(\\s-*[[:alpha:]_].+?|\\)")
+            (while (looking-at "^\\(\\s-*[[:alpha:]_].+?|\\)\\|\\s-*#\\|\\s-+")
 	      (when (match-string 1)
 		(setq phase-end (line-end-position)))
               (forward-line))
