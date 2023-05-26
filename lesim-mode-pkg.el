@@ -2,7 +2,7 @@
   "lesim-mode"
   "0.2"
   "Major mode for Learning Simulator scripts"
-  ((emacs "28.1"))
+  '((emacs "28.1"))
   :maintainer
   '(("Stefano Ghirlanda" . "drghirlanda@gmail.com"))
   :keywords
