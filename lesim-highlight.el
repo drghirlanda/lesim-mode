@@ -152,16 +152,23 @@ Checks between (point) and LIMIT."
     (when (re-search-forward "|\\s-*\\(.+?\\)\\s-*\\([|#\n]\\)" limit t)
       (let ((field-beg (match-beginning 1))
 	    (field-end (match-end 1))
-	    (lines nil)) ; set later, we might be too far now
+	    (lines nil)     ; set later, we might be too far now
+	    (variables nil) ; ditto
+	    (region nil))
 	(goto-char field-beg) ; also ensures we are in a phase
-	(setq lines (lesim--phase-lines (lesim--phase-region-at-point)))
+	(setq region (lesim--phase-region-at-point))
+	(setq lines (lesim--phase-lines region))
+	(setq variables (lesim--phase-local-variables region))
 	(while (re-search-forward "\\s-*\\([^(,:]+\\)\\s-*\\([().:,0-9]*\\)" field-end t)
 	  (let ((invalid nil)
 		(bit (match-string 1))
 		(del (match-string 2)))
 	    (if (string= del ":")
-		(unless (member bit lesim--behaviors)
-		  (setq invalid t))
+		(progn
+		  (string-match (concat "\\`\\s-*\\(" lesim--name-re "\\)") bit)
+		  (when (and (not (member bit lesim--behaviors))
+			     (not (member (match-string 1 bit) variables)))
+		    (setq invalid t)))
 	      (if (and (not (string= "@omit_learn" bit)) (not (string-match-p "=" bit)))
 		  (unless (member bit lines)
 		    (setq invalid t))))

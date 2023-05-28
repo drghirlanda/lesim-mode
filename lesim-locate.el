@@ -57,14 +57,15 @@ Return nil if point is not in a @phase block."
   "Return list of phase line names within REGION."
   (when region
     (save-excursion
-      (let ((reg-beg (nth 0 region))
-            (reg-end (nth 1 region))
-            (lines (list))
-            (line-re (concat "^\\s-*\\(" lesim--name-re "\\)\\s-")))
-	(goto-char reg-beg)
-	(while (re-search-forward line-re reg-end t)
-          (push (match-string 1) lines))
-	lines))))
+      (save-match-data
+	(let ((reg-beg (nth 0 region))
+              (reg-end (nth 1 region))
+              (lines '())
+              (line-re (concat "^\\s-*\\(" lesim--name-re "\\)\\s-")))
+	  (goto-char reg-beg)
+	  (while (re-search-forward line-re reg-end t)
+            (push (match-string 1) lines))
+	  lines)))))
 
 (defun lesim--phase-names ()
   "Return list of phase names in a Learning Simulator script."
@@ -75,6 +76,24 @@ Return nil if point is not in a @phase block."
         (while (re-search-forward "@phase\\s-+\\([[:alpha:]_][[:alnum:]_]*\\)" nil t)
           (push (match-string 1) phases))
         phases))))
-                   
+
+(defun lesim--phase-local-variables (region)
+  "Return list of local variables defined in the phase in REGION.
+Does NOT check that REGION is actually a phase block!"
+  (when region
+    (save-excursion
+      (save-match-data
+	(let ((variables '())
+	      (lines (lesim--phase-lines region))
+	      (beg (nth 0 region))
+	      (end (nth 1 region)))
+	  (goto-char beg)
+	  (while (re-search-forward (concat "\\(" lesim--name-re "\\)\\s-*=") end t)
+	    (let ((name (match-string 1)))
+	      (unless (or (member name lines)
+			  (member name variables))
+		(push name variables))))
+	  variables)))))
+
 (provide 'lesim-locate)
 ;;; lesim-locate.el ends here
