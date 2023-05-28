@@ -149,10 +149,10 @@ URL `https://github.com/drghirlanda/lesim'.
       ["Highlight" lesim-highlight]
       ["Help" describe-mode]
       ["Customize" (lambda () (interactive) (customize-group 'lesim))]
-      ["Bugs" (lambda () (interactive) (browse-url "https://github.com/drghirlanda/lesim/issues"))]
+      ["Bugs and issues" (lambda () (interactive) (browse-url "https://github.com/drghirlanda/lesim-mode/issues"))]
       ("Learning Simulator"
        ["Docs" (lambda () (interactive) (browse-url "https://learningsimulator.readthedocs.io/en/latest/index.html"))]
-       ["Issues" (lambda () (interactive) (browse-url "https://github.com/learningsimulator/issues"))]))))
+       ["Bugs and issues" (lambda () (interactive) (browse-url "https://github.com/learningsimulator/issues"))]))))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.les\\'" . lesim-mode))
