@@ -29,6 +29,12 @@
 (defvar lesim--behaviors)
 (defvar lesim--stimuli)
 
+(defun lesim--mark (beg end msg)
+  "Mark the region between BEG and END as invalid.
+Add MSG as tooltip."
+  (put-text-property beg end 'face font-lock-warning-face)
+  (put-text-property beg end 'help-echo msg))
+
 (defun lesim--extend-region ()
   "Mark multiline comments."
   ;; count ### before start to see if we are in a comment:
@@ -131,8 +137,10 @@
 (defun lesim--match-invalid-phase-stimuli (limit)
   "Highlight undeclared stimuli within LIMIT."
   (let ((line-re (concat "^\\s-*" lesim--name-re "\\s-+\\(.+?\\)\\s-*|"))
-	(elem-re (concat "\\(" lesim--name-re "\\)\\[?[0-9.]*\\]?"))
-	(line-beg (point)))
+	(elem-re (concat "\\(" lesim--name-re "\\)\\[?\\([0-9a-z._]*\\)\\]?"))
+	(line-beg (point))
+	(case-fold-search t)
+	(variables (lesim--phase-local-variables (lesim--phase-region-at-point))))
     (when (re-search-forward line-re limit t)
       (goto-char (match-beginning 1))
       (let ((line-end (line-end-position))
@@ -140,11 +148,17 @@
 	(while (re-search-forward elem-re stim-end t)
           (let ((elem (match-string 1))
                 (elem-beg (match-beginning 1))
-                (elem-end (match-end 1)))
+                (elem-end (match-end 1))
+		(inte (match-string 2))
+		(inte-beg (match-beginning 2))
+		(inte-end (match-end 2)))
             (unless (member elem lesim--stimuli)
-	      (put-text-property elem-beg elem-end 'face font-lock-warning-face))))
-	(set-match-data (list line-beg line-end))
-	(goto-char line-end)))))
+	      (lesim--mark elem-beg elem-end "Unknown stimulus element"))
+	    (unless (or (member inte variables)
+			(lesim-scalar-p inte))
+	      (lesim--mark inte-beg inte-end "Intensity must be a scalar or a local variable"))))
+      (set-match-data (list line-beg line-end))
+      (goto-char line-end)))))
 
 (defun lesim--match-invalid-behaviors-and-lines (limit)
   "Highlight undeclared behaviors and line names.
@@ -162,18 +176,21 @@ Checks between (point) and LIMIT."
 	(while (re-search-forward "\\s-*\\([^(,:]+\\)\\s-*\\([().:,0-9]*\\)" field-end t)
 	  (let ((invalid nil)
 		(bit (match-string 1))
-		(del (match-string 2)))
+		(del (match-string 2))
+		(msg nil))
 	    (if (string= del ":")
 		(progn
 		  (string-match (concat "\\`\\s-*\\(" lesim--name-re "\\)") bit)
 		  (when (and (not (member bit lesim--behaviors))
 			     (not (member (match-string 1 bit) variables)))
-		    (setq invalid t)))
+		    (setq invalid t)
+		    (setq msg "Condition must be a behavior or a boolean expression")))
 	      (if (and (not (string= "@omit_learn" bit)) (not (string-match-p "=" bit)))
 		  (unless (member bit lines)
-		    (setq invalid t))))
+		    (setq invalid t)
+		    (setq msg "Action must be a phase line, an assignment, or @omit_learn"))))
 	    (when invalid
-	      (put-text-property (match-beginning 1) (match-end 1) 'face font-lock-warning-face))))
+	      (lesim--mark (match-beginning 1) (match-end 1) msg))))
 	(set-match-data (list field-beg field-end))
 	(goto-char field-end))))
 

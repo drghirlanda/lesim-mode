@@ -13,10 +13,10 @@ alpha_v           = 0.1
 u                 = reward:10, default:0
 beta              = 1
 
-@phase training stop: stimulus==500
-START_TRIAL  stimulus   | response: REWARD(.5) | NO_REWARD
-REWARD       reward     | START_TRIAL
-NO_REWARD    background | START_TRIAL
+@phase training stop: REWARD==50
+START_TRIAL  stimulus   | x=1, response: REWARD | NO_REWARD
+REWARD       reward[x]  | x==1:START_TRIAL
+NO_REWARD    background | @omit_learn, START_TRIAL
                  
 @run training
 
