@@ -45,6 +45,11 @@
   :type 'key-sequence
   :group 'lesim)
 
+(defcustom lesim-next-error-key (kbd "C-c C-e")
+  "Keybinding to move to the next validation error."
+  :type 'key-sequence
+  :group 'lesim)
+
 (defcustom lesim-template-auto t
   "Insert a script template when opening an empty .les file."
   :type 'boolean

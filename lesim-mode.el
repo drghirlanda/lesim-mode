@@ -84,6 +84,18 @@ This function is bound to \\[lesim-backward-word]"
     (goto-char (point-min))
     (end-of-line)))
 
+(defun lesim-next-error ()
+  "Move to next validation error."
+  (interactive)
+  (let ((strat (point))
+	(struc  (text-property-search-forward 'help-echo)))
+    (if struc
+	(progn
+	  (goto-char (prop-match-beginning struc))
+	  (message (prop-match-value struc)))
+      (message "No more errors")
+      (goto-char start))))
+
 (defvar lesim--stimuli)
 (defvar lesim--behaviors)
 
@@ -112,6 +124,7 @@ URL `https://github.com/drghirlanda/lesim'.
   (define-key lesim-mode-map lesim-template-key #'lesim-template)
   (define-key lesim-mode-map [backtab] #'lesim-backward-word)
   (define-key lesim-mode-map lesim-highlight-key #'lesim-highlight)
+  (define-key lesim-mode-map lesim-next-error-key #'lesim-next-error)
   (setq-local indent-line-function #'lesim-forward-word)
   (setq-local comment-start "#")
   (setq-local comment-end "")
