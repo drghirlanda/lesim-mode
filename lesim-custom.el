@@ -40,7 +40,7 @@
   :type 'key-sequence
   :group 'lesim)
 
-(defcustom lesim-highlight-key (kbd "C-c C-h")
+(defcustom lesim-highlight-key (kbd "C-c C-l")
   "Keybinding to re-highlight a Learning Simulator buffer."
   :type 'key-sequence
   :group 'lesim)

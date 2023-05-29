@@ -2,6 +2,12 @@
 
 ;; Copyright (C) 2023 Stefano Ghirlanda
 
+;; Author: Stefano Ghirlanda <drghirlanda@gmail.com>
+;; Keywords: languages, faces
+;; Version: 0.2
+;; Package-Requires: (("emacs "28.1"))
+;; URL: https://github.com/drghirlanda/lesim-mode
+
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
@@ -87,12 +93,12 @@ This function is bound to \\[lesim-backward-word]"
 (defun lesim-next-error ()
   "Move to next validation error."
   (interactive)
-  (let ((strat (point))
-	(struc  (text-property-search-forward 'help-echo)))
+  (let ((start (point))
+        (struc (text-property-search-forward 'help-echo)))
     (if struc
-	(progn
-	  (goto-char (prop-match-beginning struc))
-	  (message (prop-match-value struc)))
+        (progn
+          (goto-char (prop-match-beginning struc))
+          (message (prop-match-value struc)))
       (message "No more errors")
       (goto-char start))))
 

@@ -40,15 +40,15 @@ Return nil if point is not in a @phase block."
     (save-match-data
       (let ((search-beg (point))
             (case-fold-search t))
-	;; can we find @phase backwards?
-	(when (re-search-backward "^\\s-*@phase" nil t)
+        ;; can we find @phase backwards?
+        (when (re-search-backward "^\\s-*@phase" nil t)
           (let ((phase-beg (match-beginning 0))
-		(phase-end nil))
+                (phase-end nil))
             (forward-line) ; skip @phase line
             ;; move forward while we get phase lines:
             (while (looking-at "^\\(\\s-*[[:alpha:]_].+?|\\)\\|\\s-*#\\|\\s-+")
-	      (when (match-string 1)
-		(setq phase-end (line-end-position)))
+              (when (match-string 1)
+                (setq phase-end (line-end-position)))
               (forward-line))
             (when (>= phase-end search-beg)
               (list phase-beg phase-end))))))))
@@ -58,14 +58,14 @@ Return nil if point is not in a @phase block."
   (when region
     (save-excursion
       (save-match-data
-	(let ((reg-beg (nth 0 region))
+        (let ((reg-beg (nth 0 region))
               (reg-end (nth 1 region))
               (lines '())
               (line-re (concat "^\\s-*\\(" lesim--name-re "\\)\\s-")))
-	  (goto-char reg-beg)
-	  (while (re-search-forward line-re reg-end t)
+          (goto-char reg-beg)
+          (while (re-search-forward line-re reg-end t)
             (push (match-string 1) lines))
-	  lines)))))
+          lines)))))
 
 (defun lesim--phase-names ()
   "Return list of phase names in a Learning Simulator script."
@@ -83,17 +83,17 @@ Does NOT check that REGION is actually a phase block!"
   (when region
     (save-excursion
       (save-match-data
-	(let ((variables '())
-	      (lines (lesim--phase-lines region))
-	      (beg (nth 0 region))
-	      (end (nth 1 region)))
-	  (goto-char beg)
-	  (while (re-search-forward (concat "\\(" lesim--name-re "\\)\\s-*=") end t)
-	    (let ((name (match-string 1)))
-	      (unless (or (member name lines)
-			  (member name variables))
-		(push name variables))))
-	  variables)))))
+        (let ((variables '())
+              (lines (lesim--phase-lines region))
+              (beg (nth 0 region))
+              (end (nth 1 region)))
+          (goto-char beg)
+          (while (re-search-forward (concat "\\(" lesim--name-re "\\)\\s-*=") end t)
+            (let ((name (match-string 1)))
+              (unless (or (member name lines)
+                          (member name variables))
+                (push name variables))))
+          variables)))))
 
 (provide 'lesim-locate)
 ;;; lesim-locate.el ends here

@@ -54,18 +54,18 @@ If point is not in a parameter block, do nothing."
   (save-excursion
     (let ((search-start (point))
           (assign-re  (concat "^\\(\\s-*" lesim--name-re "\\s-*=.+\\|#.*\\|[z-a]\\)$"))
-	  (continue t))
+          (continue t))
       ;; search backward, stop when we found non-comment non-empty
       ;; line that is not a parameter assignment:
       (while (and continue (re-search-backward assign-re (point-min) t))
-	(unless (string-match-p (concat "'\\s-*" lesim--name-re "\\s-*=") (match-string 1))
-	  (setq continue nil)))
+        (unless (string-match-p (concat "'\\s-*" lesim--name-re "\\s-*=") (match-string 1))
+          (setq continue nil)))
       (let ((beg (match-beginning 0))
             (indent-tabs-mode nil)
-	    (continue t))
+            (continue t))
         (while (and continue (re-search-forward assign-re (point-max) t))
-	  (unless (string-match-p (concat "'\\s-*" lesim--name-re "\\s-*=") (match-string 1))
-	    (setq continue nil)))	  
+          (unless (string-match-p (concat "'\\s-*" lesim--name-re "\\s-*=") (match-string 1))
+            (setq continue nil)))
         (let ((end (match-end 0)))
           (when (and (<= search-start end) (>= search-start beg))
             ;; standardize spaces after = and ,
