@@ -11,8 +11,8 @@ scripts. To learn more about the Learning Simulator, see this [[https://joss.the
 article]] and the [[https://learningsimulator.readthedocs.io][online documentation]].
 
 Lesim-mode helps to ensure that a script is correct by highlighting
-common syntax errors and typos, like misspelled keywords and stimulus
-elements.[fn:markus]
+common errors, like misspelled keywords and stimulus
+elements.[fn:markus] 
 
 You can run Learning Simulator scripts directly from lesim-mode
 buffers. Errors are reported in the minibuffer and highlighted in the
@@ -44,11 +44,14 @@ Add ~(require 'lesim-mode)~ to your Emacs init file (most often,
 
 Syntax highlighting is enabled automatically.
 
-Parameter assignments and other constructs are highlighted if
-incorrect. (Not 100% comprehensive yet.)
+~C-c C-c~ runs the script in the Learning Simulator, highlighting any
+error.
 
-~C-c C-c~ runs the script in the Learning Simulator, highlighting
-errors in the buffer.
+Even without running a script, some common errors are highlighted (not
+100% comprehensive yet).
+
+Hovering on an error with the mouse pops up a description. ~C-c C-e~
+moves to the next error, displaying a description in the minibuffer.
 
 ~TAB~ and ~Shift-TAB~ in move between fields in phase blocks, and by
 word elsewhere. They also align phase blocks at ~|~ signs and
@@ -56,8 +59,8 @@ parameter blocks at ~=~ signs.
 
 ~C-c C-t~ inserts a template script (see [[Configuration]]).
 
-~C-c C-h~ re-highlights the whole script, case something looks funny.
-  
+~C-c C-h~ re-highlights the whole script, in case something looks funny.
+
 * Configuration
 
 Using ~M-x customize-group lesim~ you can configure:
@@ -65,6 +68,7 @@ Using ~M-x customize-group lesim~ you can configure:
 - The key binding to run scripts.
 - The key binding to insert a template script.
 - The key binding to re-highlight the buffer.
+- The key binding to move to the next validation error.
 - Whether to insert a template script when opening an empty ~.les~
   file (default: ~nil~).
 
