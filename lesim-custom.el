@@ -45,7 +45,7 @@
   :type 'key-sequence
   :group 'lesim)
 
-(defcustom lesim-next-error-key (kbd "C-c C-e")
+(defcustom lesim-next-error-key (kbd "C-c C-n")
   "Keybinding to move to the next validation error."
   :type 'key-sequence
   :group 'lesim)
