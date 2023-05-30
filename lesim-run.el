@@ -35,13 +35,13 @@ Return a list with beginning and end points."
   "Highlight lesim error in current buffer.
 ERROR-LIST is a list returned by `lesim-run'.  When ERROR-LIST is
 nil (no error running the script), remove error highlights."
-  (remove-overlays (point-min) (point-max) 'id 'lesim--invalid)
+  (remove-overlays (point-min) (point-max) 'id 'lesim-error)
   (when error-list
     (let* ((regn (lesim-find-error error-list))
            (mess (nth 1 error-list))
            (ovrl (make-overlay (nth 0 regn) (nth 1 regn))))
       (overlay-put ovrl 'face font-lock-warning-face)
-      (overlay-put ovrl 'id 'lesim--invalid)
+      (overlay-put ovrl 'id 'lesim-error)
       (overlay-put ovrl 'help-echo mess)
       (goto-char (nth 0 regn))
       (message mess)
