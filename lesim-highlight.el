@@ -136,7 +136,7 @@ Add MSG as tooltip."
 
 (defun lesim--match-invalid-phase-stimuli (limit)
   "Highlight undeclared stimuli within LIMIT."
-  (let ((line-re (concat "^\\s-*" lesim--name-re "\\s-+\\(.+?\\)\\s-*|"))
+  (let ((line-re (concat "^\\s-*" lesim--name-re "\\s-+\\(.*?\\)\\s-*|"))
         (elem-re (concat "\\(" lesim--name-re "\\)\\[?\\([0-9a-z._]*\\)\\]?"))
         (line-beg (point))
         (case-fold-search t)
@@ -152,7 +152,7 @@ Add MSG as tooltip."
                 (inte (match-string 2))
                 (inte-beg (match-beginning 2))
                 (inte-end (match-end 2)))
-            (unless (member elem lesim--stimuli)
+            (unless (and (length elem) (member elem lesim--stimuli))
               (lesim--mark elem-beg elem-end "Unknown stimulus element"))
             (unless (or (member inte variables)
                         (lesim-scalar-p inte))
