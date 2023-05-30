@@ -176,6 +176,8 @@ Checks between (point) and LIMIT."
         (while (re-search-forward "\\s-*\\([^(,:]+\\)\\s-*\\([().:,0-9]*\\)" field-end t)
           (let ((invalid nil)
                 (bit (match-string 1))
+		(bit-beg (match-beginning 1))
+		(bit-end (match-end 1))
                 (del (match-string 2))
                 (msg nil))
             (if (string= del ":")
@@ -190,7 +192,7 @@ Checks between (point) and LIMIT."
                     (setq invalid t)
                     (setq msg "Action must be a phase line, an assignment, or @omit_learn"))))
             (when invalid
-              (lesim--mark (match-beginning 1) (match-end 1) msg))))
+              (lesim--mark bit-beg bit-end msg))))
         (set-match-data (list field-beg field-end))
         (goto-char field-end))))
 
