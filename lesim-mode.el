@@ -137,7 +137,7 @@ URL `https://github.com/drghirlanda/lesim'.
   ;; search-based highlighting:
   (setq-local font-lock-support-mode nil) ; helps with multiline
   (setq-local font-lock-multiline t)
-;  (add-to-list 'font-lock-extend-region-functions #'lesim--extend-region)
+  (add-to-list 'font-lock-extend-region-functions #'lesim--extend-region)
   (setq-local lesim--font-lock-keywords
               `(
                 ;; eol comments: (2 patterns to avoid ## and ### at bol)

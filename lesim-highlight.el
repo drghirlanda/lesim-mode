@@ -38,18 +38,33 @@ Add MSG as tooltip."
 (defun lesim--extend-region ()
   "Mark multiline comments."
   ;; count ### before start to see if we are in a comment:
-  (let (beg end)
-    (when (search-backward "###" nil t)
-      (setq beg (match-beginning 0)))
-    (when (search-forward "###" nil t)
-      (setq end (match-end 0)))
-    (if (< beg font-lock-beg)
-        (setq font-lock-beg beg)
-      (setq beg nil))
-    (if (> end font-lock-end)
-        (setq font-lock-end end)
-      (setq end nil))
-    (or beg end)))
+  (save-excursion
+    (save-match-data
+      (let ((start (point))
+	    (count 0)
+	    (region nil)
+	    (beg nil)
+	    (end nil))
+	(goto-char start)
+	(setq region (lesim--phase-region-at-point))
+	(if region
+	    (progn
+	      (setq beg (nth 0 region))
+	      (setq end (nth 1 region)))
+	  (goto-char (point-min))
+	  (while (search-forward "###" start t)
+	    (setq count (1+ count)))
+	  (when (/= 0 (/ count 2))
+	    (goto-char start)
+	    (when (search-backward "###" (point-min) t)
+	      (setq beg (match-beginning 0))
+	    (when (search-forward "###")
+	      (setq end (match-end 0))))))
+	(when (and beg (< beg font-lock-beg))
+	  (setq font-lock-beg beg))
+	(when (and end (> end font-lock-end))
+	  (setq font-lock-end end))
+	(or beg end)))))
 
 (defun lesim--match-multiline-comment (limit)
   "Highlight multiline comment between point and LIMIT."
