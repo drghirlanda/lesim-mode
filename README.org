@@ -32,13 +32,8 @@ Simulator chief software architect [[https://github.com/markusrobertjonsson][Mar
 
 * Installing
 
-Install from here for now, hopefully from MELPA later.
-
-Open the lesim-mode directory in Emacs and do ~M-x
-package-install-from-buffer~.
-
-Add ~(require 'lesim-mode)~ to your Emacs init file (most often,
-~.emacs.d/init.el~).
+Install from MELPA, then add ~(require 'lesim-mode)~ to your Emacs
+init file (e.g., ~.emacs.d/init.el~).
 
 * Using
 
@@ -48,9 +43,9 @@ Syntax highlighting is enabled automatically.
 error.
 
 Even without running a script, some common errors are highlighted (not
-100% comprehensive yet).
+100% accurate).
 
-Hovering on an error with the mouse pops up a description. ~C-c C-e~
+Hovering on an error with the mouse pops up a description. ~C-c C-n~
 moves to the next error, displaying a description in the minibuffer.
 
 ~TAB~ and ~Shift-TAB~ in move between fields in phase blocks, and by
@@ -59,16 +54,14 @@ parameter blocks at ~=~ signs.
 
 ~C-c C-t~ inserts a template script (see [[Configuration]]).
 
-~C-c C-h~ re-highlights the whole script, in case something looks funny.
+~C-c C-l~ re-highlights the whole script, in case something looks
+funny.
 
 * Configuration
 
 Using ~M-x customize-group lesim~ you can configure:
 - The command used to run the Learning Simulator (default: ~lesim.py~).
-- The key binding to run scripts.
-- The key binding to insert a template script.
-- The key binding to re-highlight the buffer.
-- The key binding to move to the next validation error.
+- The key bindings mentioned in the previous section.
 - Whether to insert a template script when opening an empty ~.les~
   file (default: ~nil~).
 
