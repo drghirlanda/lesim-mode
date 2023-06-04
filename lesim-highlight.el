@@ -109,15 +109,16 @@ Add MSG as tooltip."
 
 (defun lesim--valid-run-wholeline ()
   "Match Learning Simulator one-line @run commands."
-  (let ((fields (split-string (thing-at-point 'line) "," t "[ \t]+"))
-        (phases (lesim--phase-names)))
-    ;; 1st field needs to be split again on whitespace:
-    (setq fields (append (split-string (pop fields)) fields))
-    (when (string= "@run" (pop fields))
-      (if (length= fields 1)
-          (member (nth 0 fields) phases)
-        (pop fields) ; label: can be anything
-        (seq-every-p (lambda (x) (member x phases)) fields)))))
+  (let* ((other-list (split-string (thing-at-point 'line) "," t "\\s-+"))
+	 (first-list (split-string (pop other-list)))
+         (phases (lesim--phase-names)))
+    (when (string= "@run" (pop first-list))
+      (if (length= first-list 1)
+          (member (nth 0 first-list) phases)
+	;; 1st elt (phase label) must be a valid name:
+	(when (lesim-name-p (pop first-list))
+          (seq-every-p (lambda (x) (member x phases))
+		       (append first-list other-list)))))))
 
 (defun lesim--match-command (limit)
   "Match and validate lesim @ commands until LIMIT."
@@ -131,8 +132,10 @@ Add MSG as tooltip."
             (when (member com lesim-commands)
               (cond
                ((string= com "@phase")
-                ;; we check that @phase is followed by a valid name,
-                ;; which can include an inherited phase name
+                ;; we check that @phase is followed by a valid
+                ;; name. this can include an inherited phase name: now
+                ;; we just lazily match (), but later we should check
+                ;; that what is inside () is a different phase name.
                 (if (re-search-forward "\\=\\s-+[[:alpha:]_][[:alnum:]_()]*"
                                        limit
                                        t)
