@@ -51,22 +51,36 @@ nil (no error running the script), remove error highlights."
   "Run Learning Simulator on file SCRIPT-FILE."
   (interactive)
   (message "Running script...")
-  (let* ((script-command (concat lesim-command " " script-file))
-         (script-output (shell-command-to-string script-command)))
-    (message "")
-    (when (string-match "Error on line \\([0-9]+\\): \\(.+\\)"
-                        script-output)
-      (let ((line (string-to-number (match-string 1 script-output)))
-            (mess (match-string 0 script-output)))
-        (with-temp-buffer
-          (insert-file-contents script-file)
-          (goto-char (point-min))
-          (forward-line (1- line))
-          (let ((beg (point)))
-            (end-of-line)
-            (list line
-                  mess
-                  (buffer-substring beg (point)))))))))
+  (let* ((proc-buf (generate-new-buffer (concat " *lesim run: " (buffer-file-name))))
+	 (proc-cmd (concat lesim-command " " script-file))
+	 (proc-obj (start-process-shell-command "lesim" proc-buf proc-cmd)))
+    (setq proc-buf (process-buffer proc-obj)) ; could be different...
+    (with-current-buffer proc-buf
+      (while (process-live-p proc-obj)
+	(accept-process-output proc-obj 0.25)
+	(let (prog-msg prog-val)
+	  (goto-char (point-max))
+	  (when (re-search-backward "Running .+" nil t)
+	    (setq prog-msg (match-string 0))
+	    (goto-char (point-max))
+	    (when (re-search-backward "[^0-9]\\([0-9]+%\\)" nil t)
+	      (setq prog-val (match-string 1))
+	      (message "%s %s" prog-msg prog-val)))))
+      (message "Done")
+      (goto-char (point-max))
+      (when (re-search-backward "Error on line \\([0-9]+\\): \\(.+\\)" nil t)
+	(let ((line (string-to-number (match-string 1)))
+	      (mess (match-string 0)))
+          (with-temp-buffer
+            (insert-file-contents script-file)
+            (goto-char (point-min))
+            (forward-line (1- line))
+            (let ((beg (point)))
+	      (end-of-line)
+	      (list line
+                    mess
+                    (buffer-substring beg (point))))))))))
+	
 
 (defun lesim-run-and-error ()
   "Run lesim on the current buffer's file.
