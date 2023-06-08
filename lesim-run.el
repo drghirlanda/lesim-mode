@@ -52,7 +52,7 @@ nil (no error running the script), remove error highlights."
   ;; we create an asynchronous Learning Simulator process and send its
   ;; output to a buffer that we monitor it for progress and errors
   (interactive)
-  (message "Running script...")
+  (message "Running")
   (let* ((proc-buf (generate-new-buffer (concat " *lesim run: " (buffer-file-name))))
 	 (proc-cmd (concat lesim-command " " script-file))
 	 (proc-obj (start-process-shell-command "lesim" proc-buf proc-cmd))
