@@ -49,43 +49,57 @@ nil (no error running the script), remove error highlights."
   
 (defun lesim-run (script-file)
   "Run Learning Simulator on file SCRIPT-FILE."
+  ;; we create an asynchronous Learning Simulator process and send its
+  ;; output to a buffer that we monitor it for progress and errors
   (interactive)
   (message "Running script...")
   (let* ((proc-buf (generate-new-buffer (concat " *lesim run: " (buffer-file-name))))
 	 (proc-cmd (concat lesim-command " " script-file))
-	 (proc-obj (start-process-shell-command "lesim" proc-buf proc-cmd)))
+	 (proc-obj (start-process-shell-command "lesim" proc-buf proc-cmd))
+	 (prog-msg nil)
+	 (prog-val nil)
+	 (err-line nil)
+	 (err-mess nil))
     (setq proc-buf (process-buffer proc-obj)) ; could be different...
     (with-current-buffer proc-buf
       (while (process-live-p proc-obj)
 	(accept-process-output proc-obj 0.25)
-	(let (prog-msg prog-val)
+	(goto-char (point-max))
+	(when (re-search-backward "Running .+" nil t)
+	  (setq prog-msg (match-string 0))
 	  (goto-char (point-max))
-	  (when (re-search-backward "Running .+" nil t)
-	    (setq prog-msg (match-string 0))
-	    (goto-char (point-max))
-	    (when (re-search-backward "[^0-9]\\([0-9]+%\\)" nil t)
-	      (setq prog-val (match-string 1))
-	      (message "%s %s" prog-msg prog-val)))))
+	  (when (re-search-backward "[^0-9]\\([0-9]+%\\)" nil t)
+	    (setq prog-val (match-string 1))
+	    (message "%s %s" prog-msg prog-val))))
       (message "Done")
       (goto-char (point-max))
       (when (re-search-backward "Error on line \\([0-9]+\\): \\(.+\\)" nil t)
-	(let ((line (string-to-number (match-string 1)))
-	      (mess (match-string 0)))
-          (with-temp-buffer
-            (insert-file-contents script-file)
-            (goto-char (point-min))
-            (forward-line (1- line))
-            (let ((beg (point)))
-	      (end-of-line)
-	      (list line
-                    mess
-                    (buffer-substring beg (point))))))))))
+	(setq err-line (string-to-number (match-string 1))
+	      err-mess (match-string 0))))
+    (kill-buffer proc-buf)
+    ;; we create a new buffer with script-file to grab the line
+    ;; of code that caused the error. we don't rely on existing
+    ;; buffers because they might be org-src or org-mode buffers
+    ;; with different line numbers. lesim-find-error will find
+    ;; out the actual line number.
+    (when err-line
+      (with-temp-buffer
+	(insert-file-contents script-file)
+	(goto-char (point-min))
+	(forward-line (1- err-line))
+	(let ((beg (point)))
+	  (end-of-line)
+	  (list err-line
+		err-mess
+		(buffer-substring beg (point))))))))
 	
 
 (defun lesim-run-and-error ()
   "Run lesim on the current buffer's file.
 Prompt to save unsaved changes if any."
   (interactive)
+  (lesim-error nil) ; remove errors
+  (lesim-highlight)
   (save-some-buffers nil `(lambda () (eq (current-buffer)
                                          ,(current-buffer))))
   (lesim-error (lesim-run (buffer-file-name))))
