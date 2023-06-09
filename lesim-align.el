@@ -40,13 +40,14 @@ If point is not in a phase block, do nothing."
             (replace-match "| "))
           (message "")
           ;; align line id and stimulus:
-          (align-regexp beg end "\\(\\s-+\\)\\s-" 1 1 nil)
+          (align-regexp beg end "\\(\\s-+\\)" 1 1 nil)
           ;; align | clauses:
-          (align-regexp beg end "\\(\\s-*\\)|" 1 1 t))))))
-          ;; align comments
-          ;; (goto-char (nth 0 region))
-          ;; (while (re-search-forward "^\\s-*\\(#+\\s-+\\)" end t)
-          ;;   (replace-match "# ")))))))
+          (align-regexp beg end "\\(\\s-*\\)|" 1 1 t)))
+      t)))
+;; align comments
+;; (goto-char (nth 0 region))
+;; (while (re-search-forward "^\\s-*\\(#+\\s-+\\)" end t)
+;;   (replace-match "# ")))))))
 
 (defun lesim--align-parameters ()
   "Align parameter block at point.
