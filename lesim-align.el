@@ -53,33 +53,30 @@ If point is not in a phase block, do nothing."
 If point is not in a parameter block, do nothing."
   (save-excursion
     (let ((search-start (point))
-          (assign-re  (concat "^\\(\\s-*" lesim--name-re "\\s-*=.+\\|#.*\\|[z-a]\\)$"))
-          (continue t))
-      ;; search backward, stop when we found non-comment non-empty
+          (assign-re  (concat "^\\(\\s-*" lesim--name-re "\\s-*=.+\\|#.*\\)$"))
+	  (indent-tabs-mode nil)
+          (block-beg nil)
+	  (block-end nil))
+      ;; search backward, stop when we find non-comment non-empty
       ;; line that is not a parameter assignment:
-      (while (and continue (re-search-backward assign-re (point-min) t))
-        (unless (string-match-p (concat "'\\s-*" lesim--name-re "\\s-*=") (match-string 1))
-          (setq continue nil)))
-      (let ((beg (match-beginning 0))
-            (indent-tabs-mode nil)
-            (continue t))
-        (while (and continue (re-search-forward assign-re (point-max) t))
-          (unless (string-match-p (concat "'\\s-*" lesim--name-re "\\s-*=") (match-string 1))
-            (setq continue nil)))
-        (let ((end (match-end 0)))
-          (when (and (<= search-start end) (>= search-start beg))
-            ;; standardize spaces after = and ,
-            (goto-char beg)
-            (while (re-search-forward "\\([=,]\\)[ \t]+" end t)
-              (replace-match "\\1 "))
-            ;; hide replace-regexp message:
-            (message "")
-            (align-regexp beg
-                          end
-                          "\\(\\s-*\\)="
-                          1
-                          1
-                          t)))))))
+      (while (re-search-backward assign-re (point-min) t)
+	(setq block-beg (match-beginning 0)))
+      (goto-char search-start)
+      (while (re-search-forward assign-re (point-max) t)
+	(setq block-end (match-end 0)))
+      (when (and (<= search-start block-end) (>= search-start block-beg))
+        ;; standardize spaces after = and ,
+        (goto-char block-beg)
+        (while (re-search-forward "\\([=,]\\)[ \t]+" block-end t)
+          (replace-match "\\1 "))
+        ;; hide replace-regexp message:
+        (message "")
+        (align-regexp block-beg
+                      block-end
+                      "\\(\\s-*\\)="
+                      1
+                      1
+                      t)))))
 
 (defun lesim-align ()
   "Align phase and parameters blocks at point."
