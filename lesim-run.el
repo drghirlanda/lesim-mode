@@ -64,6 +64,7 @@ nil (no error running the script), remove error highlights."
     (with-current-buffer proc-buf
       (while (process-live-p proc-obj)
 	(accept-process-output proc-obj 0.25)
+	(redisplay)
 	(goto-char (point-max))
 	(when (re-search-backward "Running .+" nil t)
 	  (setq prog-msg (match-string 0))
