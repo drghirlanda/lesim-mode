@@ -56,8 +56,6 @@ nil (no error running the script), remove error highlights."
   (let* ((proc-buf (generate-new-buffer (concat " *lesim run: " (buffer-file-name))))
 	 (proc-cmd (concat lesim-command " " script-file))
 	 (proc-obj (start-process-shell-command "lesim" proc-buf proc-cmd))
-	 (prog-msg nil)
-	 (prog-val nil)
 	 (err-line nil)
 	 (err-mess nil))
     (setq proc-buf (process-buffer proc-obj)) ; could be different...

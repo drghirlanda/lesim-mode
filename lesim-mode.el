@@ -4,7 +4,7 @@
 
 ;; Author: Stefano Ghirlanda <drghirlanda@gmail.com>
 ;; Keywords: languages, faces
-;; Version: 0.3.3
+;; Version: 0.3.4
 ;; Package-Requires: ((emacs "28.1"))
 ;; URL: https://github.com/drghirlanda/lesim-mode
 

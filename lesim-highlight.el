@@ -232,16 +232,9 @@ Add MSG as tooltip."
   "Highlight undeclared behaviors and line names.
 Checks between (point) and LIMIT."
     (when (re-search-forward "|\\s-*\\(.+?\\)\\s-*\\([|#\n]\\)" limit t)
-      (let ((field (match-string 1))
-	    (field-beg (match-beginning 1))
-            (field-end (match-end 1))
-            (lines nil)     ; set later, we might be too far now
-            (variables nil) ; ditto
-            (region nil))
+      (let ((field-beg (match-beginning 1))
+            (field-end (match-end 1)))
         (goto-char field-beg) ; also ensures we are in a phase
-        (setq region (lesim--phase-region-at-point))
-        (setq lines (lesim--phase-lines region))
-        (setq variables (lesim--phase-local-variables region))
 	(while (re-search-forward "\\s-*\\([^,:]+\\)\\s-*\\([,:]?\\)" field-end t)
           (let ((bit (match-string 1))
 		(bit-beg (match-beginning 1))
