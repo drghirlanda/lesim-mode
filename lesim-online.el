@@ -2,12 +2,6 @@
 
 ;; Copyright (C) 2023 Stefano Ghirlanda
 
-;; Author: Stefano Ghirlanda
-;; Keywords: languages, faces
-;; Version: 0.2
-;; Package-Requires: ((emacs "28.1"))
-;; URL: https://github.com/drghirlanda/lesim-mode
-
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
