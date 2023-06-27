@@ -131,7 +131,15 @@ URL `https://github.com/drghirlanda/lesim'.
   (define-key lesim-mode-map [backtab] #'lesim-backward-word)
   (define-key lesim-mode-map lesim-highlight-key #'lesim-highlight)
   (define-key lesim-mode-map lesim-next-error-key #'lesim-next-error)
+  ;; movement and alignment:
   (setq-local indent-line-function #'lesim-forward-word)
+  (defvar lesim-mode-syntax-table
+    (let ((table (make-syntax-table prog-mode-syntax-table)))
+      (modify-syntax-entry ?_ "w" table)
+      (modify-syntax-entry ?@ "w" table)
+      table))
+  (set-syntax-table lesim-mode-syntax-table)
+  ;; comments:
   (setq-local comment-start "#")
   (setq-local comment-end "")
   ;; search-based highlighting:
