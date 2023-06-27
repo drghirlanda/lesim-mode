@@ -48,7 +48,7 @@ This function is bound to \\[lesim-forward-word]"
     (let* ((region (lesim--phase-region-at-point))
            (reg-beg (nth 0 region))
            (reg-end (nth 1 region)))
-      (re-search-forward (concat lesim--name-re
+      (re-search-forward (concat "@?" lesim--name-re
                                  "\\|"
                                  lesim--scalar-re)
                          (point-max) t 2)
