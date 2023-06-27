@@ -40,7 +40,7 @@ If point is not in a phase block, do nothing."
             (replace-match "| "))
           (message "")
           ;; align line id and stimulus:
-          (align-regexp beg end "\\(\\s-+\\)" 1 1 nil)
+          (align-regexp beg end "\\([ \t]+\\)" 1 1 nil)
           ;; align | clauses:
           (align-regexp beg end "\\(\\s-*\\)|" 1 1 t)))
       t)))
