@@ -54,7 +54,7 @@ If point is not in a phase block, do nothing."
 If point is not in a parameter block, do nothing."
   (save-excursion
     (let ((search-start (point))
-          (assign-re  (concat "^\\(\\s-*" lesim--name-re "\\s-*=.+\\|#.*\\)$"))
+          (assign-re  (concat "^\\s-*" lesim--name-re "\\s-*=.+"))
 	  (indent-tabs-mode nil)
           (block-beg nil)
 	  (block-end nil))
@@ -62,7 +62,6 @@ If point is not in a parameter block, do nothing."
       ;; line that is not a parameter assignment:
       (while (re-search-backward assign-re (point-min) t)
 	(setq block-beg (match-beginning 0)))
-      (goto-char search-start)
       (while (re-search-forward assign-re (point-max) t)
 	(setq block-end (match-end 0)))
       (when (and (<= search-start block-end) (>= search-start block-beg))
