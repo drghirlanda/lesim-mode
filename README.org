@@ -37,25 +37,72 @@ init file (e.g., ~.emacs.d/init.el~).
 
 * Using
 
-Syntax highlighting is enabled automatically.
+** Syntax highlighting and validation
 
-~C-c C-c~ runs the script in the Learning Simulator, highlighting any
-error.
-
-Even without running a script, some common errors are highlighted (not
-100% accurate).
+Syntax highlighting is enabled automatically and validates as you
+type. Common errors are highlighted, including:
+- Misspelled parameter names, stimulus elements, and behaviors
+- Invalid parameter values
+- Undeclared phase line names (including across inherited phases)
+- Invalid conditions and actions in phase blocks
 
 Hovering on an error with the mouse pops up a description. ~C-c C-n~
 moves to the next error, displaying a description in the minibuffer.
 
-~TAB~ and ~Shift-TAB~ in move between fields in phase blocks, and by
-word elsewhere. They also align phase blocks at ~|~ signs and
-parameter blocks at ~=~ signs.
+~C-c C-l~ re-highlights the whole script, in case something looks
+funny.
+
+** Running scripts
+
+~C-c C-c~ runs the script in the Learning Simulator. Execution is
+asynchronous, so Emacs remains responsive. Errors are reported in the
+minibuffer and highlighted in the script buffer.
+
+** Navigation and alignment
+
+~TAB~ moves between fields in phase blocks, and by word elsewhere. It
+also aligns the current line in phase blocks (at ~|~ signs) and
+parameter blocks (at ~=~ signs). Phase blocks are also aligned when
+entering the buffer.
+
+~Shift-TAB~ moves backward by field or word.
+
+** Completion
+
+~C-M-i~ (or ~M-TAB~) triggers completion based on context:
+- At line start: parameter names and ~@~ commands
+- After ~@run~: phase names
+- After ~mechanism =~: mechanism names
+- In a phase block: stimulus elements, behaviors, phase line names
+  (including inherited), and local variables
+- In conditions and actions: behaviors, phase line names, variables
+
+** Eldoc
+
+With ~eldoc-mode~ (enabled by default), the echo area shows
+documentation for the symbol at point:
+- Parameters: type and default value
+- ~@~ commands: brief description
+- Stimulus elements, behaviors, phase lines: labeled, with phase
+  membership for phase lines (noting if inherited)
+
+** Outline folding
+
+~outline-minor-mode~ is enabled automatically. ~@phase~ blocks are
+level-1 headings, other ~@~ commands are level 2, and parameter
+assignments are level 3. Standard outline keybindings apply, e.g.:
+- ~C-c @ C-t~: fold all (show only headings)
+- ~C-c @ C-a~: show all
+- ~TAB~ on a heading line: cycle visibility (Emacs 28+)
+
+** Templates
 
 ~C-c C-t~ inserts a template script (see [[Configuration]]).
 
-~C-c C-l~ re-highlights the whole script, in case something looks
-funny.
+** Phase inheritance
+
+Phases declared as ~@phase name(parent)~ inherit all line names from
+the parent phase. Validation and completion are aware of this.
 
 * Configuration
 

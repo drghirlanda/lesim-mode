@@ -36,6 +36,7 @@
 (require 'lesim-align)     ; alignment
 (require 'lesim-run)       ; running scripts
 (require 'lesim-highlight) ; font-lock functions
+(require 'lesim-complete)  ; completion and eldoc
 (require 'lesim-custom)    ; customization
 
 (defun lesim-forward-word ()
@@ -107,6 +108,15 @@ This function is bound to \\[lesim-backward-word]"
 (defvar lesim--stimuli)
 (defvar lesim--behaviors)
 
+(defun lesim--outline-level ()
+  "Return the outline level of the current line."
+  (save-excursion
+    (beginning-of-line)
+    (cond
+     ((looking-at "[ \t]*@phase\\b") 1)
+     ((looking-at "[ \t]*@") 2)
+     (t 3))))
+
 ;;; Lesim-Mode definition
 
 (defvar lesim-mode-syntax-table
@@ -155,9 +165,19 @@ URL `https://github.com/drghirlanda/lesim'.
   ;; movement and alignment:
   (setq-local indent-line-function #'lesim-forward-word)
   (lesim--align-all-phases)
+  ;; completion and documentation:
+  (add-hook 'completion-at-point-functions #'lesim-completion-at-point nil t)
+  (setq-local eldoc-documentation-function #'lesim-eldoc-function)
+  (setq-local completion-ignore-case t)
   ;; comments:
   (setq-local comment-start "#")
   (setq-local comment-end "")
+  ;; outline: @phase at level 1, other @ commands at level 2,
+  ;; parameter blocks (name = ...) at level 3:
+  (setq-local outline-regexp
+              "[ \t]*\\(@phase\\|@[a-z]\\|[a-zA-Z_][a-zA-Z0-9_]*[ \t]*=\\)")
+  (setq-local outline-level #'lesim--outline-level)
+  (outline-minor-mode 1)
   ;; search-based highlighting:
   (setq-local font-lock-support-mode nil) ; helps with multiline
   (setq-local font-lock-multiline t)
