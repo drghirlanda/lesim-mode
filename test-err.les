@@ -1,7 +1,7 @@
 # title:   A test script for lesim-mode 
 # author:  Stefano Ghirlanda
 # date:    2023-05-03 
-# summary: Just to show off. Contains errors and won't run.
+# summary: Demonstrate error highlighting. Will not run.
 
 n_subjects        = 1 # end of line comment 
 mechanism         = sr
@@ -16,19 +16,30 @@ beta              = 1x # invalid value
 ###
 Highlighted typos in @phase blocks:
 ###
-@phase training stop: stimulus==500
-START_TRIAL  stimulus,background | reponse: REWARD(.5) | NO_REWARD
-REWARD       rewar      | START_TRIAL
-NO_REWARD    background | START_TRIA
+@phase training1 stop: stimulus==500
+START_TRIAL  stimulus,background | rand():START_TRIAL, count_reset(REWARD), 1x=2, response: REWARD(.5) | NO_REWARD
+REWARD       rewar               | 1 or response: START_TRIAL
+NO_REWARD    background          | START_TRIA
+
+# correct phase block:
+@phase training2 stop: stimulus==500
+START_TRIAL  stimulus,background | response: REWARD(.5) | NO_REWARD
+REWARD       reward              | START_TRIAL
+NO_REWARD    background          | START_TRIAL
                  
 # these are wrong:
-@run xtraining 
+@run xtraining
+@run training1, xtraining2
+@run my_run training1, xtraining2
 @run my_run xtraining
              
 # these are correct:
-@run training
-@run my_run training
+@run training1
+@run my_run training1
+@run training1, training2
+@run my_run training1, training2
 
 @figure v(stimulus->response)
 @subplot 111 {'xlabel':'exposures to stimulus', 'ylabel':'v-value'}
 @vplot stimulus->response
+

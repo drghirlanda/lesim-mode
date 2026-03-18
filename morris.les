@@ -1,0 +1,142 @@
+random_seed = 0
+n_subjects        = 100
+mechanism         = a
+behaviors         = up,down,left,right
+stimulus_elements = s1x1, s1x2, s1x3, s1x4, s1x5, s1x6, s1x7, s1x8, s1x9, s1x10, s2x1, s2x2, s2x3, s2x4, s2x5, s2x6, s2x7, s2x8, s2x9, s2x10, s3x1, s3x2, s3x3, s3x4, s3x5, s3x6, s3x7, s3x8, s3x9, s3x10, s4x1, s4x2, s4x3, s4x4, s4x5, s4x6, s4x7, s4x8, s4x9, s4x10, s5x1, s5x2, s5x3, s5x4, s5x5, s5x6, s5x7, s5x8, s5x9, s5x10, s6x1, s6x2, s6x3, s6x4, s6x5, s6x6, s6x7, s6x8, s6x9, s6x10, s7x1, s7x2, s7x3, s7x4, s7x5, s7x6, s7x7, s7x8, s7x9, s7x10, s8x1, s8x2, s8x3, s8x4, s8x5, s8x6, s8x7, s8x8, s8x9, s8x10, s9x1, s9x2, s9x3, s9x4, s9x5, s9x6, s9x7, s9x8, s9x9, s9x10, s10x1, s10x2, s10x3, s10x4, s10x5, s10x6, s10x7, s10x8, s10x9, s10x10, reward
+start_v           = 0
+start_w           = 0
+alpha_v           = 0.5
+alpha_w           = 0.5
+beta              = 0.35
+u                 = reward:50, default:-1
+
+# start at 2,2 and reward at 8,8
+
+@phase morris_train stop: reward=60
+START               | S2x2
+S1x1   s1x1        | right:S1x2         | down:S2x1   | S1x1
+S1x2    s1x2        | right:S1x3   | left:S1x1   | down:S2x2  | S1x2
+S1x3    s1x3        | right:S1x4   | left:S1x2   | down:S2x3  | S1x3
+S1x4    s1x4        | right:S1x5   | left:S1x3   | down:S2x4  | S1x4
+S1x5    s1x5        | right:S1x6   | left:S1x4   | down:S2x5  | S1x5
+S1x6    s1x6        | right:S1x7   | left:S1x5   | down:S2x6  | S1x6
+S1x7    s1x7        | right:S1x8   | left:S1x6   | down:S2x7  | S1x7
+S1x8    s1x8        | right:S1x9   | left:S1x7   | down:S2x8  | S1x8
+S1x9    s1x9        | right:S1x10  | left:S1x8   | down:S2x9  | S1x9
+S1x10   s1x10       | left:S1x9    | down:S2x10  | S1x10
+S2x1    s2x1        | right:S2x2   | down:S3x1   | up:S1x1    | S2x1
+S2x2    s2x2        | right:S2x3   | left:S2x1   | down:S3x2  | up:S1x2 | S2x2
+S2x3    s2x3        | right:S2x4   | left:S2x2   | down:S3x3  | up:S1x3 | S2x3
+S2x4    s2x4        | right:S2x5   | left:S2x3   | down:S3x4  | up:S1x4 | S2x4
+S2x5    s2x5        | right:S2x6   | left:S2x4   | down:S3x5  | up:S1x5 | S2x5
+S2x6    s2x6        | right:S2x7   | left:S2x5   | down:S3x6  | up:S1x6 | S2x6
+S2x7    s2x7        | right:S2x8   | left:S2x6   | down:S3x7  | up:S1x7 | S2x7
+S2x8    s2x8        | right:S2x9   | left:S2x7   | down:S3x8  | up:S1x8 | S2x8
+S2x9    s2x9        | right:S2x10  | left:S2x8   | down:S3x9  | up:S1x9 | S2x9
+S2x10   s2x10       | left:S2x9    | down:S3x10  | up:S1x10   | S2x10
+S3x1    s3x1        | right:S3x2   | down:S4x1   | up:S2x1    | S3x1
+S3x2    s3x2        | right:S3x3   | left:S3x1   | down:S4x2  | up:S2x2 | S3x2
+S3x3    s3x3        | right:S3x4   | left:S3x2   | down:S4x3  | up:S2x3 | S3x3
+S3x4    s3x4        | right:S3x5   | left:S3x3   | down:S4x4  | up:S2x4 | S3x4
+S3x5    s3x5        | right:S3x6   | left:S3x4   | down:S4x5  | up:S2x5 | S3x5
+S3x6    s3x6        | right:S3x7   | left:S3x5   | down:S4x6  | up:S2x6 | S3x6
+S3x7    s3x7        | right:S3x8   | left:S3x6   | down:S4x7  | up:S2x7 | S3x7
+S3x8    s3x8        | right:S3x9   | left:S3x7   | down:S4x8  | up:S2x8 | S3x8
+S3x9    s3x9        | right:S3x10  | left:S3x8   | down:S4x9  | up:S2x9 | S3x9
+S3x10   s3x10       | left:S3x9    | down:S4x10  | up:S2x10   | S3x10
+S4x1    s4x1        | right:S4x2   | down:S5x1   | up:S3x1    | S4x1
+S4x2    s4x2        | right:S4x3   | left:S4x1   | down:S5x2  | up:S3x2 | S4x2
+S4x3    s4x3        | right:S4x4   | left:S4x2   | down:S5x3  | up:S3x3 | S4x3
+S4x4    s4x4        | right:S4x5   | left:S4x3   | down:S5x4  | up:S3x4 | S4x4
+S4x5    s4x5        | right:S4x6   | left:S4x4   | down:S5x5  | up:S3x5 | S4x5
+S4x6    s4x6        | right:S4x7   | left:S4x5   | down:S5x6  | up:S3x6 | S4x6
+S4x7    s4x7        | right:S4x8   | left:S4x6   | down:S5x7  | up:S3x7 | S4x7
+S4x8    s4x8        | right:S4x9   | left:S4x7   | down:S5x8  | up:S3x8 | S4x8
+S4x9    s4x9        | right:S4x10  | left:S4x8   | down:S5x9  | up:S3x9 | S4x9
+S4x10   s4x10       | left:S4x9    | down:S5x10  | up:S3x10   | S4x10
+S5x1    s5x1        | right:S5x2   | down:S6x1   | up:S4x1    | S5x1
+S5x2    s5x2        | right:S5x3   | left:S5x1   | down:S6x2  | up:S4x2 | S5x2
+S5x3    s5x3        | right:S5x4   | left:S5x2   | down:S6x3  | up:S4x3 | S5x3
+S5x4    s5x4        | right:S5x5   | left:S5x3   | down:S6x4  | up:S4x4 | S5x4
+S5x5    s5x5        | right:S5x6   | left:S5x4   | down:S6x5  | up:S4x5 | S5x5
+S5x6    s5x6        | right:S5x7   | left:S5x5   | down:S6x6  | up:S4x6 | S5x6
+S5x7    s5x7        | right:S5x8   | left:S5x6   | down:S6x7  | up:S4x7 | S5x7
+S5x8    s5x8        | right:S5x9   | left:S5x7   | down:S6x8  | up:S4x8 | S5x8
+S5x9    s5x9        | right:S5x10  | left:S5x8   | down:S6x9  | up:S4x9 | S5x9
+S5x10   s5x10       | left:S5x9    | down:S6x10  | up:S4x10   | S5x10
+S6x1    s6x1        | right:S6x2   | down:S7x1   | up:S5x1    | S6x1
+S6x2    s6x2        | right:S6x3   | left:S6x1   | down:S7x2  | up:S5x2 | S6x2
+S6x3    s6x3        | right:S6x4   | left:S6x2   | down:S7x3  | up:S5x3 | S6x3
+S6x4    s6x4        | right:S6x5   | left:S6x3   | down:S7x4  | up:S5x4 | S6x4
+S6x5    s6x5        | right:S6x6   | left:S6x4   | down:S7x5  | up:S5x5 | S6x5
+S6x6    s6x6        | right:S6x7   | left:S6x5   | down:S7x6  | up:S5x6 | S6x6
+S6x7    s6x7        | right:S6x8   | left:S6x6   | down:S7x7  | up:S5x7 | S6x7
+S6x8    s6x8        | right:S6x9   | left:S6x7   | down:S7x8  | up:S5x8 | S6x8
+S6x9    s6x9        | right:S6x10  | left:S6x8   | down:S7x9  | up:S5x9 | S6x9
+S6x10   s6x10       | left:S6x9    | down:S7x10  | up:S5x10   | S6x10
+S7x1    s7x1        | right:S7x2   | down:S8x1   | up:S6x1    | S7x1
+S7x2    s7x2        | right:S7x3   | left:S7x1   | down:S8x2  | up:S6x2 | S7x2
+S7x3    s7x3        | right:S7x4   | left:S7x2   | down:S8x3  | up:S6x3 | S7x3
+S7x4    s7x4        | right:S7x5   | left:S7x3   | down:S8x4  | up:S6x4 | S7x4
+S7x5    s7x5        | right:S7x6   | left:S7x4   | down:S8x5  | up:S6x5 | S7x5
+S7x6    s7x6        | right:S7x7   | left:S7x5   | down:S8x6  | up:S6x6 | S7x6
+S7x7    s7x7        | right:S7x8   | left:S7x6   | down:S8x7  | up:S6x7 | S7x7
+S7x8    s7x8        | right:S7x9   | left:S7x7   | down:S8x8  | up:S6x8 | S7x8
+S7x9    s7x9        | right:S7x10  | left:S7x8   | down:S8x9  | up:S6x9 | S7x9
+S7x10   s7x10       | left:S7x9    | down:S8x10  | up:S6x10   | S7x10
+S8x1    s8x1        | right:S8x2   | down:S9x1   | up:S7x1    | S8x1
+S8x2    s8x2        | right:S8x3   | left:S8x1   | down:S9x2  | up:S7x2 | S8x2
+S8x3    s8x3        | right:S8x4   | left:S8x2   | down:S9x3  | up:S7x3 | S8x3
+S8x4    s8x4        | right:S8x5   | left:S8x3   | down:S9x4  | up:S7x4 | S8x4
+S8x5    s8x5        | right:S8x6   | left:S8x4   | down:S9x5  | up:S7x5 | S8x5
+S8x6    s8x6        | right:S8x7   | left:S8x5   | down:S9x6  | up:S7x6 | S8x6
+S8x7    s8x7        | right:S8x8   | left:S8x6   | down:S9x7  | up:S7x7 | S8x7
+S8x8    s8x8        | REWARD
+S8x9    s8x9        | right:S8x10  | left:S8x8   | down:S9x9  | up:S7x9 | S8x9
+S8x10   s8x10       | left:S8x9    | down:S9x10  | up:S7x10   | S8x10
+S9x1    s9x1        | right:S9x2   | down:S10x1  | up:S8x1    | S9x1
+S9x2    s9x2        | right:S9x3   | left:S9x1   | down:S10x2 | up:S8x2 | S9x2
+S9x3    s9x3        | right:S9x4   | left:S9x2   | down:S10x3 | up:S8x3 | S9x3
+S9x4    s9x4        | right:S9x5   | left:S9x3   | down:S10x4 | up:S8x4 | S9x4
+S9x5    s9x5        | right:S9x6   | left:S9x4   | down:S10x5 | up:S8x5 | S9x5
+S9x6    s9x6        | right:S9x7   | left:S9x5   | down:S10x6 | up:S8x6 | S9x6
+S9x7    s9x7        | right:S9x8   | left:S9x6   | down:S10x7 | up:S8x7 | S9x7
+S9x8    s9x8        | right:S9x9   | left:S9x7   | down:S10x8 | up:S8x8 | S9x8
+S9x9    s9x9        | right:S9x10  | left:S9x8   | down:S10x9 | up:S8x9 | S9x9
+S9x10   s9x10       | left:S9x9    | down:S10x10 | up:S8x10   | S9x10
+S10x1   s10x1       | right:S10x2  | up:S9x1     | S10x1
+S10x2   s10x2       | right:S10x3  | left:S10x1  | up:S9x2    | S10x2
+S10x3   s10x3       | right:S10x4  | left:S10x2  | up:S9x3    | S10x3
+S10x4   s10x4       | right:S10x5  | left:S10x3  | up:S9x4    | S10x4
+S10x5   s10x5       | right:S10x6  | left:S10x4  | up:S9x5    | S10x5
+S10x6   s10x6       | right:S10x7  | left:S10x5  | up:S9x6    | S10x6
+S10x7   s10x7       | right:S10x8  | left:S10x6  | up:S9x7    | S10x7
+S10x8   s10x8       | right:S10x9  | left:S10x7  | up:S9x8    | S10x8
+S10x9   s10x9       | right:S10x10 | left:S10x8  | up:S9x9    | S10x9
+S10x10  s10x10      | left:S10x9   | up:S9x10    | S10x10
+REWARD  s8x8,reward | @omit_learn, START
+
+@phase morris_test(morris_train) stop: s8x8==5
+START     | S2x8
+S8x8 s8x8 | right:S8x9 | left:S8x7 | down:S9x8 | up:S7x8 | S8x8
+
+@run morris_train, morris_test
+
+@hexport data/morris.csv
+
+subject: average
+@vexport *->* data/v.csv
+@wexport * data/w.csv
+
+subject: 1
+@vexport *->* data/v1.csv
+@wexport * data/w1.csv
+
+subject: 2
+@vexport *->* data/v2.csv
+@wexport * data/w2.csv
+
+subject: 3
+@vexport *->* data/v3.csv
+@wexport * data/w3.csv
+

@@ -48,9 +48,6 @@ of STRING."
   (let ((x (string-to-number string)))
     (and (>= x (nth 0 interval)) (<= x (nth 1 interval)))))
 
-(defvar lesim--scalar-re "[+-]?\\([0-9]+\\.?[0-9]*\\|[0-9]*\\.?[0-9]+\\)"
-  "Regexp to match Learning Simulator scalars.")
-
 (defun lesim-scalar-p (string &optional bopen eopen interval)
   "Return non-nil if STRING is a real number.
 For INTERVAL, see `lesim-interval-p'.  For BOPEN and EOPEN, see

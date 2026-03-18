@@ -94,20 +94,16 @@ errors."
               (push (list kwd def val) lesim-parameters)
             (push (list kwd def nil) lesim-keywords)))))
     (setq lesim-parameters (reverse lesim-parameters))
-    (setq lesim-parameter-names (mapcar (lambda (x) (car x)) lesim-parameters))
-    (setq lesim-keywords (reverse lesim-keywords))))
+    (setq lesim-parameter-names (mapcar #'car lesim-parameters))
+    (setq lesim-keywords (reverse lesim-keywords))
+    ;; Fetch keywords now that parameter names are available:
+    (lesim--retrieve "keywords")))
 
 (defun lesim--parse-keywords (status)
   "Parse @ keywords in Learning Simulator code.
 This function is called by `lesim--retrieve' in a buffer
 containing keywords.py.  It checks that STATUS does not contain
 errors."
-  ;; what until parameter names are known:
-  (sleep-for 0.5)
-  (let ((count 0))
-    (while (and (length= lesim-parameter-names 0) (< count 10))
-      (sleep-for 1)
-      (setq count (1+ count))))
   (unless (plist-get status :error)
     ;; remap parameter names if necessary:
     (dolist (p lesim-parameter-names)
@@ -125,7 +121,15 @@ errors."
     (while (re-search-forward "'\\(@[[:alpha:]]+\\)'" nil t)
       (push (match-string 1) lesim-commands))
     ;; work around missing @omit_learn in keywords.py:
-    (push "@omit_learn" lesim-commands)))
+    (push "@omit_learn" lesim-commands)
+    ;; re-highlight now that parameter/keyword data is available:
+    (dolist (buf (buffer-list))
+      (when (buffer-live-p buf)
+        (with-current-buffer buf
+          (when (eq major-mode 'lesim-mode)
+            (setq lesim--parameter-re nil)
+            (font-lock-flush)
+            (font-lock-ensure)))))))
 
 
 (defun lesim--parse-mechanism_names (status)
@@ -136,7 +140,13 @@ contain errors."
   (unless (plist-get status :error)
     (setq lesim-mechanisms '())
     (while (re-search-forward "'\\([[:alpha:]]+\\)'" nil t)
-      (push (match-string 1) lesim-mechanisms))))
+      (push (match-string 1) lesim-mechanisms))
+    (dolist (buf (buffer-list))
+      (when (buffer-live-p buf)
+        (with-current-buffer buf
+          (when (eq major-mode 'lesim-mode)
+            (font-lock-flush)
+            (font-lock-ensure)))))))
 
 (provide 'lesim-online)
 ;;; lesim-online.el ends here

@@ -44,18 +44,20 @@
 This function is bound to \\[lesim-forward-word]"
   (interactive)
   (unless (looking-at-p "^$")
-    (lesim-align)
-    (let* ((region (lesim--phase-region-at-point))
-           (reg-beg (nth 0 region))
-           (reg-end (nth 1 region)))
-      (re-search-forward (concat "@?" lesim--name-re
-                                 "\\|"
-                                 lesim--scalar-re)
-                         (point-max) t 2)
-      (goto-char (match-beginning 0))
-      (when (and region (> (point) reg-end))
-        (goto-char reg-beg)
-        (forward-line)))))
+    (let ((region (lesim--phase-region-at-point)))
+      (if region
+          ;; fast per-line alignment using cached columns:
+          (lesim--align-phase-line (lesim--phase-columns region))
+        (lesim--align-parameters))
+      (let* ((reg-beg (nth 0 region))
+             (reg-end (nth 1 region))
+             (limit (or reg-end (point-max)))
+             (word-re (concat "@?" lesim--name-re "\\|" lesim--scalar-re)))
+        (re-search-forward word-re limit t 2)
+        (goto-char (match-beginning 0))
+        (when (and region (> (point) reg-end))
+          (goto-char reg-beg)
+          (forward-line))))))
 
 (defun lesim-backward-word ()
   "Move backward by field or word.
@@ -107,6 +109,23 @@ This function is bound to \\[lesim-backward-word]"
 
 ;;; Lesim-Mode definition
 
+(defvar lesim-mode-syntax-table
+  (let ((table (make-syntax-table prog-mode-syntax-table)))
+    (modify-syntax-entry ?_ "w" table)
+    (modify-syntax-entry ?@ "w" table)
+    table)
+  "Syntax table for `lesim-mode'.")
+
+(defvar lesim-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-c C-c") #'lesim-run-and-error)
+    (define-key map (kbd "C-c C-t") #'lesim-template)
+    (define-key map [backtab] #'lesim-backward-word)
+    (define-key map (kbd "C-c C-l") #'lesim-highlight)
+    (define-key map (kbd "C-c C-n") #'lesim-next-error)
+    map)
+  "Keymap for `lesim-mode'.")
+
 ;;;###autoload
 (define-derived-mode lesim-mode prog-mode "Les"
   "Major mode to edit Learning Simulator scripts.
@@ -117,28 +136,25 @@ URL `https://github.com/drghirlanda/lesim'.
 
 \\{lesim-mode-map}"
   :group 'lesim
+  :syntax-table lesim-mode-syntax-table
   ;; insert template if configured and buffer is empty:
-  (when (and lesim-template-auto (not (buffer-size)))
+  (when (and lesim-template-auto (zerop (buffer-size)))
     (lesim-template))
   (setq-local lesim--stimuli (lesim--value-of "stimulus_elements"))
+  (setq-local lesim--stimuli-set (lesim--make-set lesim--stimuli))
   (setq-local lesim--behaviors (lesim--value-of "behaviors"))
-  (lesim--retrieve "parameters")
-  (lesim--retrieve "keywords")
+  (setq-local lesim--behaviors-set (lesim--make-set lesim--behaviors))
+  (setq-local lesim--parameter-re nil)
+  (lesim--retrieve "parameters")  ; also triggers "keywords" when done
   (lesim--retrieve "mechanism_names")
-  ;; keymap:
+  ;; rebind customizable keys (overrides defaults in lesim-mode-map):
   (define-key lesim-mode-map lesim-run-key #'lesim-run-and-error)
   (define-key lesim-mode-map lesim-template-key #'lesim-template)
-  (define-key lesim-mode-map [backtab] #'lesim-backward-word)
   (define-key lesim-mode-map lesim-highlight-key #'lesim-highlight)
   (define-key lesim-mode-map lesim-next-error-key #'lesim-next-error)
   ;; movement and alignment:
   (setq-local indent-line-function #'lesim-forward-word)
-  (defvar lesim-mode-syntax-table
-    (let ((table (make-syntax-table prog-mode-syntax-table)))
-      (modify-syntax-entry ?_ "w" table)
-      (modify-syntax-entry ?@ "w" table)
-      table))
-  (set-syntax-table lesim-mode-syntax-table)
+  (lesim--align-all-phases)
   ;; comments:
   (setq-local comment-start "#")
   (setq-local comment-end "")
@@ -159,7 +175,7 @@ URL `https://github.com/drghirlanda/lesim'.
                 ;; functions:
                 (,(regexp-opt (list "count" "count_line" "count_reset" "choice" "rand") 'words) . font-lock-function-name-face)
                 ;; other keywords:
-                (,(regexp-opt (mapcar (lambda (x) (car x)) lesim-keywords) 'words) . font-lock-function-name-face)
+                (,(regexp-opt (mapcar #'car lesim-keywords) 'words) . font-lock-function-name-face)
                 ;; phase line names:
                 ("^\\s-*\\([[:alpha:]_][[:alnum:]_]+\\)\s+.*?|" . (1 font-lock-constant-face t))
                 ;; parameter assignments:

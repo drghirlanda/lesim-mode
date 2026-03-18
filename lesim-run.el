@@ -25,12 +25,12 @@
   "Locate the error string at the cdr of ERROR-LIST.
 Return a list with beginning and end points."
   (save-excursion
-    (if (eq major-mode "org-mode")
+    (if (eq major-mode 'org-mode)
         (re-search-backward "#\\+begin_src\\s-+lesim")
       (goto-char (point-min)))
     (search-forward (nth 2 error-list))
     (list (line-beginning-position) (line-end-position))))
-    
+
 (defun lesim-error (error-list)
   "Highlight lesim error in current buffer.
 ERROR-LIST is a list returned by `lesim-run'.  When ERROR-LIST is
@@ -46,48 +46,53 @@ nil (no error running the script), remove error highlights."
       (goto-char (nth 0 regn))
       (message mess)
       mess)))
-  
-(defun lesim-run (script-file)
-  "Run Learning Simulator on file SCRIPT-FILE."
-  ;; we create an asynchronous Learning Simulator process and send its
-  ;; output to a buffer that we monitor it for progress and errors
-  (interactive)
+
+(defun lesim-run (script-file buffer)
+  "Run Learning Simulator on SCRIPT-FILE.
+BUFFER is the source buffer where errors should be highlighted.
+Uses a process sentinel so Emacs is not blocked during execution."
   (message "Running")
-  (let* ((proc-buf (generate-new-buffer (concat " *lesim run: " (buffer-file-name))))
-	 (proc-cmd (concat lesim-command " " script-file))
-	 (proc-obj (start-process-shell-command "lesim" proc-buf proc-cmd))
-	 (err-line nil)
-	 (err-mess nil))
-    (setq proc-buf (process-buffer proc-obj)) ; could be different...
-    (with-current-buffer proc-buf
-      (while (process-live-p proc-obj)
-	(accept-process-output proc-obj 0.25)
-	(redisplay)
-	(goto-char (point-max))
-	(when (re-search-backward "Running [^\r]+" nil t)
-	  (message "%s" (match-string 0))))
-      (message "Done")
-      (goto-char (point-max))
-      (when (re-search-backward "Error on line \\([0-9]+\\): \\(.+\\)" nil t)
-	(setq err-line (string-to-number (match-string 1))
-	      err-mess (match-string 0))))
-    (kill-buffer proc-buf)
-    ;; we create a new buffer with script-file to grab the line
-    ;; of code that caused the error. we don't rely on existing
-    ;; buffers because they might be org-src or org-mode buffers
-    ;; with different line numbers. lesim-find-error will find
-    ;; out the actual line number.
-    (when err-line
-      (with-temp-buffer
-	(insert-file-contents script-file)
-	(goto-char (point-min))
-	(forward-line (1- err-line))
-	(let ((beg (point)))
-	  (end-of-line)
-	  (list err-line
-		err-mess
-		(buffer-substring beg (point))))))))
-	
+  (let* ((proc-buf (generate-new-buffer (concat " *lesim run: " script-file)))
+         (proc-obj (start-process-shell-command
+                    "lesim" proc-buf
+                    (concat lesim-command " "
+                            (shell-quote-argument script-file)))))
+    (set-process-filter
+     proc-obj
+     (lambda (proc output)
+       (when (buffer-live-p (process-buffer proc))
+         (with-current-buffer (process-buffer proc)
+           (goto-char (point-max))
+           (insert output)))
+       (when (string-match "Running [^\r\n]+" output)
+         (message "%s" (match-string 0 output)))))
+    (set-process-sentinel
+     proc-obj
+     (lambda (proc _event)
+       (unless (process-live-p proc)
+         (let (err-line err-mess)
+           (when (buffer-live-p (process-buffer proc))
+             (with-current-buffer (process-buffer proc)
+               (goto-char (point-max))
+               (when (re-search-backward
+                      "Error on line \\([0-9]+\\): \\(.+\\)" nil t)
+                 (setq err-line (string-to-number (match-string 1))
+                       err-mess (match-string 0))))
+             (kill-buffer (process-buffer proc)))
+           (if (not err-line)
+               (message "Done")
+             (let (error-list)
+               (with-temp-buffer
+                 (insert-file-contents script-file)
+                 (goto-char (point-min))
+                 (forward-line (1- err-line))
+                 (setq error-list
+                       (list err-line err-mess
+                             (buffer-substring
+                              (point) (line-end-position)))))
+               (when (buffer-live-p buffer)
+                 (with-current-buffer buffer
+                   (lesim-error error-list)))))))))))
 
 (defun lesim-run-and-error ()
   "Run lesim on the current buffer's file.
@@ -97,7 +102,7 @@ Prompt to save unsaved changes if any."
   (lesim-highlight)
   (save-some-buffers nil `(lambda () (eq (current-buffer)
                                          ,(current-buffer))))
-  (lesim-error (lesim-run (buffer-file-name))))
+  (lesim-run (buffer-file-name) (current-buffer)))
 
 (provide 'lesim-run)
 ;;; lesim-run.el ends here

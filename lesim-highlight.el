@@ -28,6 +28,10 @@
 
 (defvar lesim--behaviors)
 (defvar lesim--stimuli)
+(defvar lesim--stimuli-set)
+(defvar lesim--behaviors-set)
+(defvar lesim--parameter-re nil
+  "Cached regexp matching parameter names.")
 
 (defun lesim--mark (beg end msg)
   "Mark the region between BEG and END as invalid.
@@ -80,29 +84,41 @@ Add MSG as tooltip."
       (set-match-data (list beg end))
       end)))
 
+(defun lesim--make-set (list)
+  "Return a hash table with members of LIST as keys."
+  (let ((ht (make-hash-table :test #'equal :size (length list))))
+    (dolist (item list)
+      (puthash item t ht))
+    ht))
+
 (defun lesim--match-parameter (limit)
   "Highlight parameters between point and LIMIT."
   (let (mat)
     (save-excursion
       (save-match-data
         (when (length> lesim-parameter-names 0)
-          (let* ((rex1 (regexp-opt lesim-parameter-names "\\(?1:"))
-                 (rex2 (concat rex1 "[ \t]*=[ \t]*\\(.+?\\)\\s-*[#\n]")))
-            (when (re-search-forward rex2 limit t)
-              (let* ((para (match-string 1))
-                     (valu (match-string 2))
-                     (type (nth 2 (assoc para lesim-parameters)))
-                     (beg (match-beginning 2))
-                     (end (match-end 2)))
-                (if (lesim-valid-p valu type)
-                    (progn
-                      (cond
-                       ((string= para "behaviors")
-                        (setq lesim--behaviors (split-string valu "," t "\\s-*")))
-                       ((string= para "stimulus_elements")
-                        (setq lesim--stimuli (split-string valu "," t "\\s-*"))))
-                      (setq mat (list beg end beg end 0 0)))
-                  (setq mat (list beg end 0 0 beg end)))))))))
+          ;; cache the parameter regexp:
+          (unless lesim--parameter-re
+            (setq lesim--parameter-re
+                  (concat (regexp-opt lesim-parameter-names "\\(?1:")
+                          "[ \t]*=[ \t]*\\(.+?\\)\\s-*[#\n]")))
+          (when (re-search-forward lesim--parameter-re limit t)
+            (let* ((para (match-string 1))
+                   (valu (match-string 2))
+                   (type (nth 2 (assoc para lesim-parameters)))
+                   (beg (match-beginning 2))
+                   (end (match-end 2)))
+              (if (lesim-valid-p valu type)
+                  (progn
+                    (cond
+                     ((string= para "behaviors")
+                      (setq lesim--behaviors (split-string valu "," t "\\s-*"))
+                      (setq lesim--behaviors-set (lesim--make-set lesim--behaviors)))
+                     ((string= para "stimulus_elements")
+                      (setq lesim--stimuli (split-string valu "," t "\\s-*"))
+                      (setq lesim--stimuli-set (lesim--make-set lesim--stimuli))))
+                    (setq mat (list beg end beg end 0 0)))
+                (setq mat (list beg end 0 0 beg end))))))))
     (when mat
       (set-match-data mat)
       (goto-char (nth 1 mat)))))
@@ -158,11 +174,12 @@ Add MSG as tooltip."
         (elem-re (concat "\\(" lesim--name-re "\\)\\[?\\([0-9a-z._]*\\)\\]?"))
         (line-beg (point))
         (case-fold-search t)
-        (variables (lesim--phase-local-variables (lesim--phase-region-at-point))))
+        (region (lesim--phase-region-at-point)))
     (when (re-search-forward line-re limit t)
       (goto-char (match-beginning 1))
       (let ((line-end (line-end-position))
-            (stim-end (match-end 1)))
+            (stim-end (match-end 1))
+            (variables (lesim--phase-local-variables region)))
         (while (re-search-forward elem-re stim-end t)
           (let ((elem (match-string 1))
                 (elem-beg (match-beginning 1))
@@ -170,7 +187,8 @@ Add MSG as tooltip."
                 (inte (match-string 2))
                 (inte-beg (match-beginning 2))
                 (inte-end (match-end 2)))
-            (unless (and (length elem) (member elem lesim--stimuli))
+            (unless (and elem lesim--stimuli-set
+                         (gethash elem lesim--stimuli-set))
               (lesim--mark elem-beg elem-end "Unknown stimulus element"))
             (unless (or (member inte variables)
                         (lesim-scalar-p inte))
@@ -178,27 +196,28 @@ Add MSG as tooltip."
       (set-match-data (list line-beg line-end))
       (goto-char line-end)))))
 
-(defun lesim--match-invalid-condition (condition)
-  ""
-  (let* ((operators '("and" "or" "+" "-" "/" "*" "**" "==" ">" ">=" "<" "<="))
-	 (behaviors (lesim--value-of "behaviors"))
-	 (phase-region (lesim--phase-region-at-point))
-	 (lines (lesim--phase-lines phase-region))
-	 (locals (lesim--phase-local-variables phase-region))
-	 (good-stuff (append behaviors lines locals)))
-    (dolist (bit (split-string (regexp-opt operators) condition))
-      (cond
-       ((string-match "\\`\\(choice\\|rand\\)" bit)
-	nil)
-       ;; behaviors, phase lines, local variables
-       ((string-match (concat "\\`" lesim--name-re "\\'") bit)
-	(unless (member bit good-stuff)
-	  (concat bit " is not a behavior, phase line, or variable")))
-       (t
-	nil)))))
+(defvar lesim--operator-re
+  (regexp-opt '("and" "or" "+" "-" "/" "*" "**" "==" ">" ">=" "<" "<="))
+  "Regexp matching Learning Simulator operators.")
 
-(defun lesim--match-invalid-action (bit)
-  ""
+(defun lesim--match-invalid-condition (condition lines locals)
+  "Check CONDITION for invalid behaviors, phase lines, or variables.
+LINES and LOCALS are pre-computed for the current phase."
+  (let* ((good-stuff (append lesim--behaviors lines locals))
+	 (msg nil))
+    (dolist (bit (split-string condition lesim--operator-re t "\\s-*"))
+      (unless msg
+	(cond
+	 ((string-match "\\`\\(choice\\|rand\\)" bit)
+	  nil)
+	 ((string-match (concat "\\`" lesim--name-re "\\'") bit)
+	  (unless (member bit good-stuff)
+	    (setq msg (concat bit " is not a behavior, phase line, or variable")))))))
+    msg))
+
+(defun lesim--match-invalid-action (bit lines)
+  "Check BIT for invalid actions.  Return error message or nil.
+LINES are the pre-computed phase line names for the current phase."
   (cond
    ;; assignments to local phase variables
    ((string-match "\\(.+\\)=" bit)
@@ -207,10 +226,10 @@ Add MSG as tooltip."
    ;; count_reset (must come before phase line)
    ((string-match (concat "count_reset(\\(" lesim--name-re "\\))") bit)
     (let ((event (match-string 1 bit)))
-      (when (not (member event (append (lesim--value-of "stimulus_elements")
-				      (lesim--value-of "behaviors")
-				      (lesim--phase-lines (lesim--phase-region-at-point)))))
-	(concat event " is not a stimulus element, behavior, or phase line")))) 
+      (unless (or (and lesim--stimuli-set (gethash event lesim--stimuli-set))
+		  (and lesim--behaviors-set (gethash event lesim--behaviors-set))
+		  (member event lines))
+	(concat event " is not a stimulus element, behavior, or phase line"))))
    ;; @omit_learn (must come before phase line)
    ((string= bit "@omit_learn")
     nil)
@@ -219,7 +238,7 @@ Add MSG as tooltip."
     (let ((phase-line (match-string 1 bit))
 	  (probability (match-string 2 bit))
 	  (msg nil))
-      (unless (member phase-line (lesim--phase-lines (lesim--phase-region-at-point)))
+      (unless (member phase-line lines)
 	(setq msg (concat phase-line " is not a phase line name")))
       (when (and (length> probability 0)
 		 (not (lesim-scalar-p probability nil nil '(0 1))))
@@ -235,24 +254,27 @@ Checks between (point) and LIMIT."
       (let ((field-beg (match-beginning 1))
             (field-end (match-end 1)))
         (goto-char field-beg) ; also ensures we are in a phase
-	(while (re-search-forward "\\s-*\\([^,:]+\\)\\s-*\\([,:]?\\)" field-end t)
-          (let ((bit (match-string 1))
-		(bit-beg (match-beginning 1))
-		(bit-end (match-end 1))
-                (del (match-string 2))
-                (msg nil))
-            (cond
-	     ((string-match-p "\\(rand\\|choice\\)(" bit)
-	      (goto-char bit-beg)
-	      (unless (re-search-forward ")" bit-end t)
-		(goto-char bit-end)
-		(setq msg "No closing parenthesis")))
-	     ((string= del ":")
-		(setq msg (lesim--match-invalid-condition bit)))
-	     (t
-	      (setq msg (lesim--match-invalid-action bit))))
-            (when msg
-              (lesim--mark bit-beg bit-end msg))))
+        (let* ((region (lesim--phase-region-at-point))
+               (lines (lesim--phase-lines region))
+               (locals (lesim--phase-local-variables region)))
+	  (while (re-search-forward "\\s-*\\([^,:]+\\)\\s-*\\([,:]?\\)" field-end t)
+            (let ((bit (match-string 1))
+		  (bit-beg (match-beginning 1))
+		  (bit-end (match-end 1))
+                  (del (match-string 2))
+                  (msg nil))
+              (cond
+	       ((string-match-p "\\(rand\\|choice\\)(" bit)
+	        (goto-char bit-beg)
+	        (unless (re-search-forward ")" bit-end t)
+		  (goto-char bit-end)
+		  (setq msg "No closing parenthesis")))
+	       ((string= del ":")
+	        (setq msg (lesim--match-invalid-condition bit lines locals)))
+	       (t
+	        (setq msg (lesim--match-invalid-action bit lines))))
+              (when msg
+                (lesim--mark bit-beg bit-end msg)))))
         (set-match-data (list field-beg field-end))
         (goto-char field-end))))
 

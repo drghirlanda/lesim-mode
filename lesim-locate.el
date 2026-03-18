@@ -53,8 +53,30 @@ Return nil if point is not in a @phase block."
             (when (>= phase-end search-beg)
               (list phase-beg phase-end))))))))
 
-(defun lesim--phase-lines (region)
-  "Return list of phase line names within REGION."
+(defun lesim--phase-region-by-name (name)
+  "Return the region for phase NAME, or nil if not found."
+  (save-excursion
+    (save-match-data
+      (goto-char (point-min))
+      (when (re-search-forward
+             (concat "^[ \t]*@phase[ \t]+" (regexp-quote name) "\\b") nil t)
+        ;; point is past the name; phase-region-at-point searches backward
+        (lesim--phase-region-at-point)))))
+
+(defun lesim--phase-parent (region)
+  "Return the parent phase name for REGION, or nil if none.
+Parses the @phase name(parent) declaration."
+  (when region
+    (save-excursion
+      (save-match-data
+        (goto-char (nth 0 region))
+        (when (looking-at
+               (concat "\\s-*@phase\\s-+" lesim--name-re
+                       "(\\(" lesim--name-re "\\))"))
+          (match-string 1))))))
+
+(defun lesim--phase-own-lines (region)
+  "Return list of phase line names defined directly in REGION."
   (when region
     (save-excursion
       (save-match-data
@@ -66,6 +88,19 @@ Return nil if point is not in a @phase block."
           (while (re-search-forward line-re reg-end t)
             (push (match-string 1) lines))
           lines)))))
+
+(defun lesim--phase-lines (region)
+  "Return list of phase line names for REGION, including inherited."
+  (when region
+    (let ((lines (lesim--phase-own-lines region))
+          (parent (lesim--phase-parent region)))
+      (when parent
+        (let ((parent-region (lesim--phase-region-by-name parent)))
+          (when parent-region
+            (dolist (line (lesim--phase-lines parent-region))
+              (unless (member line lines)
+                (push line lines))))))
+      lines)))
 
 (defun lesim--phase-names ()
   "Return list of phase names in a Learning Simulator script."
